@@ -1,4 +1,4 @@
-## This code is a tester for the dq_stepper 
+## This code is a demo for the dq_stepper  
 ## Author : Avadesh Meduri
 ## Date : 20/11/ 2019
 
@@ -43,27 +43,10 @@ total_mass = sum([i.mass for i in robot.pin_robot.model.inertias[1:]])
 
 
 #######################################################################################################
-import copy
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as Func
 
-class ANN(nn.Module):
-    
-    def __init__(self, input_size, outputs):
-        super(ANN, self).__init__()
-        self.l1 = nn.Linear(input_size, 256)
-        self.l2 = nn.Linear(256, 256)
-        self.action_value = nn.Linear(256, outputs)
-        
-    def forward(self, x):
-        x = Func.relu(self.l1(x))
-        x = Func.relu(self.l2(x))
-        return self.action_value(x)
     
 ht = 0.2
-t_end = 0.15   #step_time
+t_end = 0.1   #step_time
 dqs = ANN(3,1)
 dqs.load_state_dict(torch.load("../models/dqs"))
 action_set = np.linspace(-0.15, 0.15, 9)
