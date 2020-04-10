@@ -28,7 +28,7 @@ from pinocchio.utils import zero
 
 class SoloBulletEnv:
 
-    def __init__(self, ht, step_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com):
+    def __init__(self, ht, step_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, ifrecord = False):
         '''
         Input:
             ht : height of the COM above the ground
@@ -40,12 +40,14 @@ class SoloBulletEnv:
             kp_ang_com : p gain orientation control
             kd_ang_com : d gain orientation control
         '''
-        self.robot = Quadruped12Robot(ifrecord=False)
-        self.total_mass = sum([i.mass for i in self.robot.pin_robot.model.inertias[1:]])
-
+        
         self.ht = ht
         self.step_time = step_time
         self.dt = 0.001
+        
+        self.robot = Quadruped12Robot()
+        self.total_mass = sum([i.mass for i in self.robot.pin_robot.model.inertias[1:]])
+
         # Impedance controller initialisation
         assert np.shape(kp) == (3,)
         assert np.shape(kd) == (3,) 
@@ -66,6 +68,12 @@ class SoloBulletEnv:
         # State estimation initialisation
         self.sse = SoloStateEstimator(self.robot.pin_robot)
     
+    def update_gains(self, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com):
+        self.kp = 4 * kp
+        self.kd = 4 * kd
+        self.centr_controller = SoloCentroidalController(self.robot.pin_robot, self.total_mass,
+        mu=0.5, kc=kp_com, dc=kd_com, kb=kp_ang_com, db=kd_ang_com,eff_ids=self.robot.pinocchio_endeff_ids)        
+
     def reset_env(self):
         q0 = np.matrix(Solo12Config.initial_configuration).T
         dq0 = np.matrix(Solo12Config.initial_velocity).T
@@ -77,16 +85,16 @@ class SoloBulletEnv:
         self.x_angvel = [0., 0., 0.]
         
         q, dq = self.robot.get_state()
-        self.fl_foot, self.fr_foot, self.hl_foot, self.hr_foot = self.sse.return_foot_locations(q,dq)
-        self.fl_off, self.fr_off, self.hl_off, self.hr_off = self.sse.return_hip_offset(q, dq)
+        fl_foot, fr_foot, hl_foot, hr_foot = self.sse.return_foot_locations(q,dq)
         self.n = 0
         self.t = 0
 
         com = np.reshape(np.array(q[0:3]), (3,))
         dcom = np.reshape(np.array(dq[0:3]), (3,))
-        u = np.average(self.fr_foot, self.hl_foot)
 
-        return np.subtract(com[0:2], u[0:2]), dcom[0:2]
+        u = 0.5*(fr_foot + hl_foot)
+       
+        return np.around(com[0:2].T, 2), np.around(dcom[0:2].T, 2), np.around(u[0:2], 2) 
 
     def generate_traj(self, q, dq, fl_foot, fr_foot, hl_foot, hr_foot, n, u_t, t):
         '''
@@ -126,11 +134,13 @@ class SoloBulletEnv:
         '''
         This function simulates the environment for step time duration
         Input:
-            action : step length to be taken
+            action : step location (COP)
         '''
         self.n += 1
         q, dq = self.robot.get_state()
         fl_foot, fr_foot, hl_foot, hr_foot = self.sse.return_foot_locations(q, dq) ## computing current location of the feet
+
+        u_t = action
 
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
@@ -139,8 +149,6 @@ class SoloBulletEnv:
             q, dq = self.robot.get_state()
             com = np.reshape(np.array(q[0:3]), (3,))
             dcom = np.reshape(np.array(dq[0:3]), (3,))
-
-            u_t = np.add(com[0:2], action)
 
             x_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, hl_foot, hr_foot, self.n, u_t, self.dt*t)
 
@@ -153,4 +161,15 @@ class SoloBulletEnv:
     
             self.t += 1
 
-        return np.subtract(com[0:2], u_t), dcom[0:2]
+        #computing the current COP location
+        # assuming COP lies in average of foot location
+        q, dq = self.robot.get_state()
+        fl_foot, fr_foot, hl_foot, hr_foot = self.sse.return_foot_locations(q, dq) ## computing current location of the feet
+        if np.power(-1, self.n) < 0:
+            u = 0.5*(fr_foot + hl_foot)
+        else:
+            u = 0.5*(fl_foot + hr_foot)
+        return np.around(com[0:2].T, 2), np.around(dcom[0:2].T, 2), np.around(u[0:2], 2)
+
+    def record(self, file_name):
+        self.robot.record(file_name)
