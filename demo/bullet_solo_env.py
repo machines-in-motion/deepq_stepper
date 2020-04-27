@@ -20,7 +20,8 @@ x_ori = [0, 0, 0, 1]
 x_angvel = [0, 0, 0]
 
 solo_env = SoloBulletEnv(ht, step_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com)
-solo_env.record("test")
+solo_env.start_recording("test")
+solo_env.stop_recording()
 x, xd, u = solo_env.reset_env()
 state_x = [x[0] - u[0], xd[0]]
 state_y = [x[1] - u[1], xd[1]]

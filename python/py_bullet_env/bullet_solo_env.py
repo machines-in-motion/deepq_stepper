@@ -171,5 +171,8 @@ class SoloBulletEnv:
             u = 0.5*(fl_foot + hr_foot)
         return np.around(com[0:2].T, 2), np.around(dcom[0:2].T, 2), np.around(u[0:2], 2)
 
-    def record(self, file_name):
-        self.robot.record(file_name)
+    def start_recording(self, file_name):
+        self.robot.start_recording(file_name)
+
+    def stop_recording(self):
+        self.robot.stop_recording()
