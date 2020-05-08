@@ -55,14 +55,14 @@ class BoltBulletEnv:
 
         # Centroidal controller initialisation
         self.centr_controller = BoltCentroidalController(self.robot.pin_robot, self.total_mass,
-        mu=5, kp=kp_com, kd=kd_com, kpa=kp_ang_com, kda=kd_ang_com,
+        mu=0.2, kp=kp_com, kd=kd_com, kpa=kp_ang_com, kda=kd_ang_com,
         eff_ids=self.robot.pinocchio_endeff_ids)
         self.F = np.zeros(12)
 
 
         # Trajectory Generator initialisation
         self.trj = TrajGenerator(self.robot.pin_robot)
-        self.f_lift = 0.1 ## height the foot lifts of the ground
+        self.f_lift = 0.05 ## height the foot lifts of the ground
 
         # State estimation initialisation
         self.sse = BoltStateEstimator(self.robot.pin_robot)
