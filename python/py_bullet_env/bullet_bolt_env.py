@@ -55,9 +55,9 @@ class BoltBulletEnv:
 
         # Centroidal controller initialisation
         self.centr_controller = BoltCentroidalController(self.robot.pin_robot, self.total_mass,
-        mu=0.2, kp=kp_com, kd=kd_com, kpa=kp_ang_com, kda=kd_ang_com,
+        mu=0.1, kp=kp_com, kd=kd_com, kpa=kp_ang_com, kda=kd_ang_com,
         eff_ids=self.robot.pinocchio_endeff_ids)
-        self.F = np.zeros(12)
+        self.F = np.zeros(6)
 
 
         # Trajectory Generator initialisation
@@ -86,6 +86,8 @@ class BoltBulletEnv:
         
         q, dq = self.robot.get_state()
         fl_foot, fr_foot = self.sse.return_foot_locations(q,dq)
+        fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
+        self.b = fl_hip[1] - fr_hip[1]
         self.n = 1 #right leg on the ground
         self.t = 0
 
@@ -105,6 +107,11 @@ class BoltBulletEnv:
         x_des = 2*[0.0, 0.0, 0]
         xd_des = 2*[0.0, 0.0, 0]
         
+        q, dq = self.robot.get_state()
+        com = np.reshape(np.array(q[0:3]), (3,))
+        # fl_hip = [com[0], com[1] + 0.5*self.b, self.ht]
+        # fr_hip = [com[0], com[1] - 0.5*self.b, self.ht]
+
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
         if t < self.step_time - stance_time:
             if np.power(-1, n) < 0: ## fr leave the ground
