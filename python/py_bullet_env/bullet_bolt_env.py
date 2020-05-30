@@ -62,7 +62,7 @@ class BoltBulletEnv:
 
         # Trajectory Generator initialisation
         self.trj = TrajGenerator(self.robot.pin_robot)
-        self.f_lift = 0.05 ## height the foot lifts of the ground
+        self.f_lift = 0.06 ## height the foot lifts of the ground
 
         # State estimation initialisation
         self.sse = BoltStateEstimator(self.robot.pin_robot)
@@ -106,13 +106,11 @@ class BoltBulletEnv:
 
         x_des = 2*[0.0, 0.0, 0]
         xd_des = 2*[0.0, 0.0, 0]
-        
         q, dq = self.robot.get_state()
         com = np.reshape(np.array(q[0:3]), (3,))
-        # fl_hip = [com[0], com[1] + 0.5*self.b, self.ht]
-        # fr_hip = [com[0], com[1] - 0.5*self.b, self.ht]
-
+            
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
+        
         if t < self.step_time - stance_time:
             if np.power(-1, n) < 0: ## fr leave the ground
                 cnt_array = [1, 0]
@@ -134,7 +132,28 @@ class BoltBulletEnv:
 
         return x_des, xd_des, cnt_array
 
-    def step_env(self, action, des_com, des_vel, x_ori, x_angvel):
+    def apply_force(self, F):
+        '''
+        This function applies a force to the base of the robot
+        Input:
+            F : force to apply 3d
+            
+        '''
+        pos, ori = p.getBasePositionAndOrientation(self.robot.robotId)
+        p.applyExternalForce(objectUniqueId=self.robot.robotId, linkIndex=-1,
+                        forceObj=F, posObj=pos, flags=p.WORLD_FRAME)
+
+    def load_terrain(self, dir):
+        '''
+        This function loads terrain in the simulation
+        Input:
+            dir : path to urdf
+        '''
+        terrain = (dir)
+        terrain_id = p.loadURDF(terrain)
+
+
+    def step_env(self, action, des_com, des_vel, x_ori, x_angvel, force = None):
         '''
         This function simulates the environment for step time duration
         Input:
@@ -149,12 +168,12 @@ class BoltBulletEnv:
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
             time.sleep(0.001)
-
+            self.apply_force(force)
             q, dq = self.robot.get_state()
             com = np.reshape(np.array(q[0:3]), (3,))
             dcom = np.reshape(np.array(dq[0:3]), (3,))
             x_des, xd_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, self.n, u_t, self.dt*t, self.stance_time)
-
+            # print(xd_des[0])
             w_com = self.centr_controller.compute_com_wrench(q, dq, des_com, des_vel, x_ori, x_angvel)
             w_com[2] += self.total_mass * 9.81
             F = self.centr_controller.compute_force_qp(q, dq, cnt_array, w_com)
