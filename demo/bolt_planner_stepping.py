@@ -49,7 +49,7 @@ x, xd, u, n = bolt_env.reset_env()
 state = [x[0] - u[0], x[1] - u[1], xd[0], xd[1], n, des_vel[0], des_vel[1]]
 bolt_env.update_gains([40, 40, 40], [10, 10, 10], [0, 0, 20], [0, 0, 10], [50, 50, 0], [40, 40, 0])
 xd_arr = []
-bolt_env.start_recording("terrain_stepping.mp4")
+# bolt_env.start_recording("terrain_stepping.mp4")
 for i in range(no_steps):
     q = dqs.predict_q(state)
     # if i > 15 and i < 18:
@@ -73,6 +73,6 @@ for i in range(no_steps):
     u = u_new
     state = [x[0] - u[0], x[1] - u[1], xd[0], xd[1], n, des_vel[0], des_vel[1]]
 
-bolt_env.stop_recording()
+# bolt_env.stop_recording()
 
 print(np.average(xd_arr))
