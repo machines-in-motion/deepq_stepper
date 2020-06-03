@@ -1,0 +1,7 @@
+1) Dqs 1 and Dqs 2 have the same architecture 8 layers 512 neurons each. They can track desired velocities of upto +-[1, 0.5].
+2) Trained with 
+	batch size : 12000
+  	episodes : 10000 
+	epsillon = 0.25 (decay by /2 after 5000 episodes)
+	lr = 1e-4
+3) Dqs 2 has better performance (used in the planner stepping demo for bolt)

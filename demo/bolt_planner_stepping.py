@@ -28,7 +28,7 @@ no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
 dqs = TwoDQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model='../models/dqs_3_old')        
+    no_actions= no_actions, trained_model='../models/twod/dqs_2')        
 ###################################################################
 # stepping with regularizing
 q_mat = np.zeros((no_actions[1], no_actions[0]))

@@ -24,27 +24,29 @@ class IPMotionPlanner:
         Input:
             n : number of discrete steps
         '''
-        P = np.zeros((3*n, 3*n))
-        np.fill_diagonal(P, np.tile([1e-3, 1e-3, 1.0], n))
-        P[3*n-1][3*n-1] = 1e+10
-        q = np.zeros(3*n)
+        P = np.zeros((3*(n+1), 3*(n+1)))
+        np.fill_diagonal(P, np.tile([1e-3, 1e-3, 1.0], n+1))
+        P[3*(n+1)-1][3*(n+1)-1] = 1e+12
+        q = np.zeros(3*(n+1))
 
         return P, q
 
-    def create_constraints(self, n, max_torque, start, step_size):
+    def create_constraints(self, n, max_torque, start, uz, ht):
         '''
         This function creates the equality constraints in the qp corresponding to the
         dynamics and inequality constraints for torque limits
         Input:
             n: number of discrete steps
             max_torques : torque limits
+            uz  : step height in the z direction
+            ht : desired height of the COM above u in the z direction at the end of the step
         '''
-        A = np.zeros((2*(n-1) + 4, 3*n))
-        b = np.zeros(2*(n-1) + 4)
-        G = np.zeros((2*(n-1), 3*n))
-        h = max_torque*np.ones(2*(n-1))
+        A = np.zeros((2*(n) + 4, 3*(n+1)))
+        b = np.zeros(2*(n) + 4)
+        G = np.zeros((2*(n), 3*(n+1)))
+        h = max_torque*np.ones(2*(n))
         
-        for t in range(0, n-1):
+        for t in range(0, n):
             A[2*t:2*(t+1), 3*t:(3*t)+5] = self.dyn_block
             G[2*t:2*(t+1), 3*t:3*t+3] = self.torque_block
 
@@ -55,24 +57,25 @@ class IPMotionPlanner:
         A[-1][-2] = 1
 
         b[-4] = start
-        b[-2] = start + step_size
+        b[-2] = uz + ht
 
         return G, h, A, b
 
-    def generate_force_trajectory(self, start, step_size, step_time):
+    def generate_force_trajectory(self, start, uz, step_time, ht):
         '''
         This function generates the force profile to move the inverted pendulum
         to the desired height in the z direction
         Input:
             start : current height of the center of mass
-            step_size : height of the step
+            uz  : step height in the z direction
             step_time : time after which step is taken
+            ht : desired height of the COM above u in the z direction at the end of the step
         '''
 
         n = int(step_time /self.dt)
 
         P, q = self.create_cost_matrix(n)
-        G, h, A, b = self.create_constraints(n, self.max_torque, start, step_size)
+        G, h, A, b = self.create_constraints(n, self.max_torque, start, uz, ht)
 
         qp_G = P
         qp_a = -q
@@ -88,10 +91,11 @@ class IPMotionPlanner:
 
         return x, xd, u
 
-ip = IPMotionPlanner(0.01, 5)
-x, xd, u = ip.generate_force_trajectory(0.2, -0.05, 0.1) 
+# ip = IPMotionPlanner(0.01, 5)
+# x, xd, u = ip.generate_force_trajectory(0.15, 0.05, 0.2, 0.2) 
 
 # plt.plot(x)
+# plt.ylim(0, 0.3)
 # plt.show()
 # plt.plot(u)
 # plt.show()
