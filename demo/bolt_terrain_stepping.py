@@ -32,7 +32,7 @@ dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
 ###################################################################
 F = [0, 0, 0]
 w = 0.0
-no_steps = 26
+no_steps = 10
 des_vel = [1.0, 0.0, 0]
 
 x, xd, u, n = bolt_env.reset_env()
