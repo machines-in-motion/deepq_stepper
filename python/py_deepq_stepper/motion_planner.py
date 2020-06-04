@@ -92,7 +92,7 @@ class IPMotionPlanner:
         return x, xd, u
 
 # ip = IPMotionPlanner(0.01, 5)
-# x, xd, u = ip.generate_force_trajectory(0.15, 0.05, 0.2, 0.2) 
+# x, xd, u = ip.generate_force_trajectory(0.15, 0.0, 0.01, 0.2) 
 
 # plt.plot(x)
 # plt.ylim(0, 0.3)
