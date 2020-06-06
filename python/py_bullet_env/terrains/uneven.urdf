@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<robot name="stairs">
+  <link name="ground_link">
+    <contact>
+      <lateral_friction value="5.0"/>
+      <restitution value="0.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.025"/>
+      <mass value=".0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.025"/>
+      <geometry>
+        <box size=".2 1.0 .05"/>      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.025"/>
+      <geometry>
+        <box size=".2 1.0 .05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="ground_to_first_step" type="fixed">
+      <parent link="ground_link"/>
+      <child link="first_step_link"/>
+   </joint>
+
+  <link name="first_step_link">
+    <contact>
+      <lateral_friction value="10.0"/>
+      <restitution value="0.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.2 0 0.04"/>
+      <mass value=".0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.2 0 0.04"/>
+      <geometry>
+        <box size="0.2 1.0 .08"/>      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.2 0 0.04"/>
+      <geometry>
+        <box size="0.2 1.0 .08"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="second_step_link">
+    <contact>
+      <lateral_friction value="1.5"/>
+      <restitution value="0.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.5 0 0.06"/>
+      <mass value=".0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz=".5 0 0.06"/>
+      <geometry>
+        <box size="0.2 1.0 .12"/>      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.5 0 0.06"/>
+      <geometry>
+        <box size="0.2 1.0 .12"/>
+      </geometry>
+    </collision>
+  </link>
+
+   <joint name="first_to_second_step" type="fixed">
+      <parent link="first_step_link"/>
+      <child link="second_step_link"/>
+      <origin xyz="0 0 0 "/>
+   </joint>
+
+  <link name="third_step_link">
+    <contact>
+      <lateral_friction value="10.0"/>
+      <restitution value="0.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.7 -.5 .04"/>
+      <mass value=".0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.7 -.5 0.04"/>
+      <geometry>
+        <box size="0.2 1.0 .08"/>      </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.7 -.5 0.04"/>
+      <geometry>
+        <box size="0.2 1.0 .08"/>
+      </geometry>
+    </collision>
+  </link>
+ 
+ <joint name="second_to_third_step" type="fixed">
+      <parent link="second_step_link"/>
+      <child link="third_step_link"/>
+      <origin xyz="0 0 0 "/>
+  </joint>
+
+
+  <link name="fourth_step_link">
+    <contact>
+      <lateral_friction value="10.0"/>
+      <restitution value="0.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.7 .5 .05"/>
+      <mass value=".0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.7 .5 0.05"/>
+      <geometry>
+        <box size="0.2 1.0 .1"/>      
+        </geometry>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.7 .5 0.05"/>
+      <geometry>
+        <box size="0.2 1.0 .1"/>
+      </geometry>
+    </collision>
+  </link>
+ 
+ <joint name="third_to_fourth_step" type="fixed">
+      <parent link="third_step_link"/>
+      <child link="fourth_step_link"/>
+      <origin xyz="0 0 0 "/>
+  </joint>
+
+</robot>

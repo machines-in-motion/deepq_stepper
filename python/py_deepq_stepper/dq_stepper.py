@@ -140,12 +140,16 @@ class DQStepper:
             
         return q_values, [action_x, action_y, action_z] 
 
+'''
+This is an implementation of the inverted pendulum environment to train a 3d dq stepper
+'''
+
 class InvertedPendulumEnv:
     
     def __init__(self, h, b, max_step_length, w, no_actions = [11, 9]):
         '''
         Input:
-            h : height of the lipm above the ground at the start of the step
+            h : height of the com above the ground at the start of the step
             b : width of the base (distance between the feet)
             max_step_length : max step length allowed
             w : weights for the cost computation
@@ -160,10 +164,12 @@ class InvertedPendulumEnv:
         # is a soft constraint in the qp
         self.h = h
         self.b = b
+        # com_offset : the distance betweem center of mass and hip   
+        self.com_offset = 0.078
         self.no_steps = 0
         assert len(w) == 3
         self.w = w
-        assert (np.linalg.norm([max_step_length, self.h]) < self.max_leg_length)
+        assert (np.linalg.norm([max_step_length, self.h - self.com_offset]) < self.max_leg_length)
         assert len(no_actions) == 2
         # The co ordinate axis is x : forward and y : sideways walking, z : faces upward
         # This means that left leg is on the positive side of the y axis
@@ -220,8 +226,8 @@ class InvertedPendulumEnv:
         self.no_steps = 0
         assert (len(v_des) == 2)
         self.v_des = v_des
-        assert (np.linalg.norm([x0[0], x0[2]]) < self.max_leg_length)
-        assert (np.linalg.norm([x0[1], x0[2]]) < self.max_leg_length)
+        assert (np.linalg.norm([x0[0], x0[2] - self.com_offset]) < self.max_leg_length)
+        assert (np.linalg.norm([x0[1], x0[2] - self.com_offset]) < self.max_leg_length)
         self.sim_data[:,0][0:5] = x0
         self.sim_data[:,0][7] = -self.b/2 # right leg on the ground
         self.sim_data[:,0][9] = 1 # determines which leg is on the ground (1 is right leg)
@@ -277,7 +283,7 @@ class InvertedPendulumEnv:
         hip = self.sim_data[:,self.t][0:2].copy()
         hip[1] -= self.sim_data[:,self.t][9]*(self.b/2.0)
         tmp = np.linalg.norm(hip - self.sim_data[:,self.t][6:8])
-        h = self.sim_data[:,self.t][2] - self.sim_data[:,self.t][8]
+        h = self.sim_data[:,self.t][2] - self.sim_data[:,self.t][8] - self.com_offset
         current_leg_length = np.linalg.norm([tmp, h])
         if current_leg_length > self.max_leg_length:
             return True

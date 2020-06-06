@@ -12,7 +12,7 @@ class TerrainHandler:
 
     def __init__(self, dir):
         self.terrain = URDF.load(dir)
-        self.t = 0.02 # safety margin 
+        self.t = 0.01 # safety margin 
 
     def check_terrain(self, ux, uy):
         '''

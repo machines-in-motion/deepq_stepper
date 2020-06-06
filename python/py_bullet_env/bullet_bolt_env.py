@@ -86,7 +86,7 @@ class BoltBulletEnv:
         Returns center of mass location at current time step after offset removal
         '''
         com = np.reshape(np.array(q[0:3]), (3,))
-        com[2] -= self.base_offset
+        # com[2] -= self.base_offset
         dcom = np.reshape(np.array(dq[0:3]), (3,))
 
         return np.around(com, 2), np.around(dcom, 2)
@@ -208,10 +208,9 @@ class BoltBulletEnv:
             q, dq = self.robot.get_state()
             
             x_des, xd_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, \
-                            self.n, u_t, self.dt*t, self.stance_time, des_z[t], des_zd[t])
+                            self.n, u_t, self.dt*t, self.stance_time, des_z[t] - self.base_offset, des_zd[t])
             
-            # undoing the offset to proivide to the COM controller
-            des_com = [0, 0, des_z[t] + self.base_offset]
+            des_com = [0, 0, des_z[t]]
             des_vel = [des_vel[0], des_vel[1], des_zd[t]]
             w_com = self.centr_controller.compute_com_wrench(q, dq, des_com, des_vel,[0, 0, 0, 1], [0, 0, 0])
             w_com[2] += self.total_mass * 9.81
