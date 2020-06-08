@@ -1,0 +1,5 @@
+1) DQS - 1 is trained for plannar stepping 
+
+2) DQS - 3 is trained for uneven terrain stepping
+
+both have same architectures 8 layers 512 neurons

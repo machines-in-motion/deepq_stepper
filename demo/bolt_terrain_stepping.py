@@ -39,7 +39,7 @@ x, xd, u, n = bolt_env.reset_env()
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, des_vel[0], des_vel[1]]
 bolt_env.update_gains([25, 25, 25], [7, 7, 10], [0, 0, 20], [0, 0, 10], [50, 50, 0], [50, 50, 0])
 xd_arr = []
-bolt_env.start_recording("3d_stepping.mp4")
+# bolt_env.start_recording("3d_stepping.mp4")
 for i in range(no_steps):
     # if i > 22 and i < 26:
     #     F = [-3, 0, 0]
