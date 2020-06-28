@@ -28,7 +28,7 @@ no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model='../models/dqs_3')        
+    no_actions= no_actions, trained_model='../models/bolt/dqs_3')        
 ###################################################################
 F = [0, 0, 0]
 w = 0.0
