@@ -35,7 +35,7 @@ xT = np.zeros(12)
 xT[2] = 0.28
 
 mp = SLCentMotionPlanner(dt, 2, 1, [1, 1, 1], max_force, max_ht)
-traj_full, force_full = mp.optimize(x0, cnt_plan, k_arr, xT, w, ter_w, horizon)
+traj_full, cent_force_full, force_full = mp.optimize(x0, cnt_plan, k_arr, xT, w, ter_w, horizon)
 
 for i in range(4):
     if np.power(-1, i) > 0:
@@ -46,7 +46,7 @@ for i in range(4):
                         [[0, 0, -0.065, 0.0, step_time, step_time + stance_time],[0, 0, 0.065, 0, step_time, step_time + stance_time]]]
     
     k_arr = np.tile([[10, 5], [10,5]],(int(np.round((step_time + stance_time)/dt, 2)), 1, 1))
-    traj, force = mp.optimize(x0, cnt_plan_mpc, k_arr, xT, w, ter_w, step_time + stance_time)
+    traj, cent_force, force = mp.optimize(x0, cnt_plan_mpc, k_arr, xT, w, ter_w, step_time + stance_time)
     x0 = traj[:,-1]
     if i == 0:
         traj_mpc = traj
@@ -75,6 +75,7 @@ axs[2].legend()
 for n in range(2):
     axs[3].plot(t, force_full[n], label = 'f' + str(n))
     axs[3].plot(t, force_mpc[n], label = 'f_mpc' + str(n))
+axs[3].plot(t, np.concatenate((cent_force_full[0], [0])),  '--', label = 'f_cent_full')
 axs[3].grid()
 axs[3].legend()
 

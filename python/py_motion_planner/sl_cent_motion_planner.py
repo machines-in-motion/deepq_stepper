@@ -88,11 +88,11 @@ class SLCentMotionPlanner:
         dxy_t = np.zeros(6)
         dxy_t[0:3] = xy_t[3:]
         for n in range(self.max_cnts):
-            dxy_t[3] += cnt_t[n]*k_t[n][0]*(xy_t[0] - r_t[n][0]) #fx
-            dxy_t[4] += cnt_t[n]*k_t[n][1]*(xy_t[1] - r_t[n][1]) #fy
-            dxy_t[5] += cnt_t[n]*(k_t[n][0] - k_t[n][1])*(xy_t[1] - r_t[n][1])*(xy_t[0] - r_t[n][0]) #tz
+            dxy_t[3] += cnt_t[n]*k_t[n][0]*(xy_t[0] - r_t[n][0])/self.m #fx/m
+            dxy_t[4] += cnt_t[n]*k_t[n][1]*(xy_t[1] - r_t[n][1])/self.m #fy/m
+            dxy_t[5] += cnt_t[n]*(k_t[n][0] - k_t[n][1])*(xy_t[1] - r_t[n][1])*(xy_t[0] - r_t[n][0])/self.I[2] #tz
         
-        return np.add(xy_t, dxy_t*self.dt)
+        return np.add(xy_t, dxy_t*self.dt), self.m*dxy_t[3:5]
 
     def create_constraint_blocks(self, xy_t, cnt_t, r_t, k_t):
         '''
@@ -130,8 +130,10 @@ class SLCentMotionPlanner:
             no_cols : number of colocation points
         '''
         self.xy_sim_data = np.zeros((6, no_col+1))
+        self.cent_force = np.zeros((3, no_col))
         self.xy_sim_data[:,0] = np.take(x0, [0, 1, 8, 3, 4, 11])
         
+
         A = np.zeros((6*no_col + 6, (6 + self.max_cnts)*no_col + 6))
         b = np.zeros(6*no_col + 6)
 
@@ -139,7 +141,7 @@ class SLCentMotionPlanner:
         h = np.zeros(2*self.max_cnts*no_col)
 
         for t in range(no_col):
-            self.xy_sim_data[:,t+1] = self.integrate_xy_dynamics(self.xy_sim_data[:,t], cnt_arr[t], r_arr[t], k_arr[t]) 
+            self.xy_sim_data[:,t+1], self.cent_force[:,t][0:2]  = self.integrate_xy_dynamics(self.xy_sim_data[:,t], cnt_arr[t], r_arr[t], k_arr[t]) 
             dyn_block_t, dyn_vec_t = self.create_constraint_blocks(self.xy_sim_data[:,t], cnt_arr[t], r_arr[t], k_arr[t])    
             A[6*t:6*(t+1), (6+self.max_cnts)*t:(6+self.max_cnts)*(t+1) + 6] = dyn_block_t
             b[6*t:6*(t+1)] = dyn_vec_t
@@ -221,8 +223,9 @@ class SLCentMotionPlanner:
             traj[10,t] = sol[(6+self.max_cnts)*t+5]
             if t < no_col:
                 force[:,t] = sol[(6+self.max_cnts)*t + 6:(6+self.max_cnts)*t + 6 + self.max_cnts]
+                self.cent_force[:,t][2] = np.sum(force[:,t])
 
-        return traj, force
+        return traj, self.cent_force, force
 
     def plot(self, traj, force, horizon):
         

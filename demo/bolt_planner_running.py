@@ -34,7 +34,7 @@ bolt_env.update_gains([120, 120, 100], [20, 20, 20], [150, 150, 100], [20, 20, 2
 
 for i in range(no_steps):
     
-    u_x = -0.05
+    u_x = -0.1
     u_y = np.power(-1, i)*0.065
     u_z = 0
 

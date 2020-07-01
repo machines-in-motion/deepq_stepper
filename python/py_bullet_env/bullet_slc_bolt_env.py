@@ -48,9 +48,9 @@ class BulletSLCBoltEnv:
         
         self.robot = BoltRobot()
         self.total_mass = sum([i.mass for i in self.robot.pin_robot.model.inertias[1:]])
-        
         q0 = np.matrix(BoltConfig.initial_configuration).T
         self.inertia = np.diag(self.robot.pin_robot.mass(q0)[3:6, 3:6])
+        
         # Robot parameters to account for to match IPM training env
         # size of the foot diameter
         self.foot_size = 0.02
@@ -246,13 +246,13 @@ class BulletSLCBoltEnv:
             cnt_plan[0][1][0] = 1
             cnt_plan[0][1][1:4] = action
 
-        traj, force = self.slc_mp.optimize(x0, cnt_plan, self.k_arr, xT, self.w, self.ter_w, self.step_time + self.air_time)
+        traj, force, _ = self.slc_mp.optimize(x0, cnt_plan, self.k_arr, xT, self.w, self.ter_w, self.step_time + self.air_time)
 
         com = np.repeat(traj[0:3], self.delta/self.dt, axis=1)
         dcom = np.repeat(traj[3:6], self.delta/self.dt, axis=1)
-        fz = np.repeat(force, self.delta/self.dt, axis=1)
+        f = np.repeat(force, self.delta/self.dt, axis=1)
 
-        return com, dcom, fz
+        return com, dcom, f
 
     def step_env(self, action, force = None):
         '''
@@ -262,7 +262,7 @@ class BulletSLCBoltEnv:
         '''
         self.n += 1
         q, dq = self.robot.get_state()
-        des_com, des_dcom, fz = self.generate_base_traj(q, dq, action, self.n)
+        des_com, des_dcom, f = self.generate_base_traj(q, dq, action, self.n)
 
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         u_t = action
@@ -279,7 +279,7 @@ class BulletSLCBoltEnv:
                             self.n, u_t, self.dt*t, des_com[:,t] - self.base_offset, des_dcom[:,t])
 
             w_com = self.centr_controller.compute_com_wrench(q, dq, des_com[:,t], des_dcom[:,t],[0, 0, 0, 1], [0, 0, 0])
-            w_com[2] += fz[0][t] + fz[1][t] # feed forward force
+            w_com[0:3] += f[:,t] # feed forward force
             F = self.centr_controller.compute_force_qp(q, dq, cnt_array, w_com)
             tau = self.bolt_leg_ctrl.return_joint_torques(q,dq,self.kp,self.kd,x_des, xd_des,F)
             self.robot.send_joint_command(tau)
