@@ -18,14 +18,14 @@ from py_blmc_controllers.bolt_centroidal_controller import BoltCentroidalControl
 from py_utils.trajectory_generator import TrajGenerator
 from py_utils.bolt_state_estimator import BoltStateEstimator
 
-from py_motion_planner.sl_cent_motion_planner import SLCentMotionPlanner
+from py_motion_planner.cent_motion_planner import CentMotionPlanner
 
 from pinocchio.utils import zero
 
 from matplotlib import pyplot as plt
 
 
-class BulletSLCBoltEnv:
+class BulletCentBoltEnv:
 
     def __init__(self, ht, step_time, air_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, ifrecord = False):
         '''
@@ -80,16 +80,15 @@ class BulletSLCBoltEnv:
         self.sse = BoltStateEstimator(self.robot.pin_robot)
 
         # motion planner for center of mass
-        self.delta = 0.05
-        self.max_force = [25, 25]
-        self.max_ht = [0.32, 32] # not enforced
-        self.k = [[10, 10], [10, 10]]
-        self.w = np.array([1e-3, 1e-3, 1e+2, 1e+2, 1, 1, 1e+2, 1e+2])
-        self.ter_w = np.array([1e+8, 1e+1, 1e+2, 1e+6, 1, 1])
-        self.k_arr = np.tile(self.k,(int(np.round((self.step_time+self.air_time)/self.delta, 2)), 1, 1))
+        self.delta_t = 0.025
+        self.f_max = np.array([[30,30, 30], [30, 30, 30]])
+        self.max_ht = np.array([[0.4, 0.4, 0.4], [0.4, 0.4, 0.4]])
+        self.w = np.array([1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e+2, 1e+2, 1e+7, 1e+7, 1e-4, 1e-4, 1e+1, 1e-4, 1e-4, 1e+1])
+        self.ter_w = np.array([1e-4, 1e-4, 1e+8, 1e-4, 1e-4, 1e+5, 1e+3, 1e+3, 1e+6, 1e+6])
+        self.xt = [0, 0, self.ht, 0, 0, 0, 0, 0, 0, 0]
 
-        self.slc_mp = SLCentMotionPlanner(self.delta, 2, self.total_mass, self.inertia, self.max_force, self.max_ht)
-
+        self.cent_mp = CentMotionPlanner(self.delta_t, 2, self.total_mass, self.inertia, self.f_max, self.max_ht)
+        
     def convert_quat_rpy(self, quat):
         '''
         This function converts quaternion to roll pitch yaw
@@ -116,11 +115,11 @@ class BulletSLCBoltEnv:
         Returns base location and orientation (rpy) at current time step after offset removal
         '''
         com = np.reshape(np.array(q[0:3]), (3,))
-        ori = self.convert_quat_rpy(q[3:7])
-        base = np.concatenate((com, ori))
-        dbase = np.reshape(np.array(dq[0:6]), (6,))
+        ori = self.convert_quat_rpy(q[3:7])[0:2] #removing yaw
+        base = np.concatenate((com, np.reshape(np.array(dq[0:3]), (3,))))
+        base_ori = np.concatenate((ori, np.reshape(np.array(dq[3:5]), (2,))))
 
-        return np.around(base, 2), np.around(dbase, 2)
+        return np.around(base, 2), np.around(base_ori, 2)
 
     def get_foot_state(self, q, dq):
         '''
@@ -152,16 +151,16 @@ class BulletSLCBoltEnv:
         q, dq = self.robot.get_state()
         fl_foot, fr_foot = self.get_foot_state(q, dq)
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
-        base, dbase = self.get_base_state(q, dq)
+        base, base_ori = self.get_base_state(q, dq)
         self.b = fl_hip[1] - fr_hip[1]
         self.n = 1 #right leg on the ground
         self.t = 0
 
-        u = fr_foot
+        self.u = np.around(fr_foot[0:3], 2)
        
-        return base[0:3].T, np.around(dbase[0:3].T, 2), np.around(u[0:3], 2), np.power(-1, self.n + 1)
+        return base[0:5].T, self.u, np.power(-1, self.n + 1)
 
-    def generate_traj(self, q, dq, fl_foot, fr_foot, n, u_t, t, des_com, des_dcom):
+    def generate_foot_traj(self, q, dq, fl_foot, fr_foot, n, u_t, t, des_com, des_dcom):
         '''
         This function returs the desired location of the foot for the 
         given time step
@@ -173,7 +172,7 @@ class BulletSLCBoltEnv:
             
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
         
-        if np.power(-1, n) < 0: ## fr leave the ground
+        if np.power(-1, n) < 0: ## fr reaches the ground
             via_point = self.f_lift + u_t[2]
             u_t_des = [[fl_foot[0], fl_foot[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
             x_des[3:6], xd_des[3:6] = self.trj.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
@@ -182,24 +181,36 @@ class BulletSLCBoltEnv:
             if t < self.step_time:
                 cnt_array = [1, 0]
                 x_des[0:3] = np.subtract(u_t_des[0], [fl_hip[0], fl_hip[1], des_com[2]])
-                
+
             elif t < self.step_time + self.air_time:
                 cnt_array = [0, 0]
-                x_des[0:3] = [-fl_hip[0], -fl_hip[1], -0.1] # fix this
+                x_des[0:3] = [0, 0, -0.1] # fix this
 
-        if np.power(-1, n) > 0: # fl leaves the ground
+            elif t < 2*self.step_time + self.air_time: # fr on ground fl in the air
+                cnt_array = [0, 1]
+                x_des[0:3] = [0, 0, -0.1] # fix this
+                x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_com[2]])
+                xd_des[3:6] = np.subtract([0, 0, 0], des_dcom)
+                
+        if np.power(-1, n) > 0: # fl reaches the ground
             via_point = self.f_lift + u_t[2]
             u_t_des = [[u_t[0], u_t[1], u_t[2]], [fr_foot[0], fr_foot[1], fr_foot[2]]]
             x_des[0:3], xd_des[0:3] = self.trj.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
             x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_com[2]])
                 
-            if t < self.step_time:
+            if t < self.step_time: #fl in the air
                 cnt_array = [0, 1]
                 x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_com[2]])
 
-            elif t < self.step_time + self.air_time:
+            elif t < self.step_time + self.air_time: # both feet in the air
                 cnt_array = [0, 0]
-                x_des[3:6] = [-fr_hip[0], -fr_hip[1], -0.1] # fix this
+                x_des[3:6] = [0, 0, -0.1] # fix this
+            
+            elif t < 2*self.step_time + self.air_time: # fl on ground fr in the air
+                cnt_array = [1, 0]
+                x_des[0:3] = np.subtract(u_t_des[0], [fl_hip[0], fl_hip[1], des_com[2]])
+                xd_des[0:3] = np.subtract([0, 0, 0], des_dcom)
+                x_des[3:6] = [0, 0, -0.1] # fix this
 
         return x_des, xd_des, cnt_array
 
@@ -223,34 +234,50 @@ class BulletSLCBoltEnv:
         terrain = (dir)
         terrain_id = p.loadURDF(terrain)
 
-    def generate_base_traj(self, q, dq, action, n):
+    def generate_base_traj(self, q, dq, u, action, n):
         '''
         This function generates the base trajecoty using the motion planner
         Input:
             q: current joint configuration of the robot
             dq : current joint velocities
+            u : current foot location (Cop)
             action : step location (COP)
             n : index denoting which foot is on the ground
         '''
-        base, dbase = self.get_base_state(q, dq)
-        x0 = np.concatenate((base, dbase))
+        base, base_ori = self.get_base_state(q, dq)
+        x0 = np.concatenate((base, base_ori))
         xT = x0.copy()
         xT[2] = action[2] + self.ht
         cnt_plan = [[[0, 0, 0, 0, 0, self.step_time], [0, 0, 0, 0, 0, self.step_time]],
-                    [[0, 0, 0, 0, self.step_time, self.step_time + self.air_time], [0, 0, 0, 0, self.step_time, self.step_time + self.air_time]]]
+                    [[0, 0, 0, 0, self.step_time, self.step_time + self.air_time], [0, 0, 0, 0, self.step_time, self.step_time + self.air_time]],
+                    [[0, 0, 0, 0, self.step_time + self.air_time, np.round(2*self.step_time + self.air_time,2)], [0, 0, 0, 0, self.step_time + self.air_time, np.round(2*self.step_time + self.air_time,2)]]]
 
-        if np.power(-1, n) < 0: ## fr leave the ground
+        if np.power(-1, n) < 0: ## fr lands on the ground
             cnt_plan[0][0][0] = 1
-            cnt_plan[0][0][1:4] = action
-        if np.power(-1, n) > 0: # fl leaves the ground
+            cnt_plan[0][0][1:4] = u
+            
+            cnt_plan[2][1][0] = 1
+            cnt_plan[2][1][1:4] = action
+        
+        if np.power(-1, n) > 0: # fl lands on the ground
             cnt_plan[0][1][0] = 1
-            cnt_plan[0][1][1:4] = action
-
-        traj, force, _ = self.slc_mp.optimize(x0, cnt_plan, self.k_arr, xT, self.w, self.ter_w, self.step_time + self.air_time)
-
-        com = np.repeat(traj[0:3], self.delta/self.dt, axis=1)
-        dcom = np.repeat(traj[3:6], self.delta/self.dt, axis=1)
-        f = np.repeat(force, self.delta/self.dt, axis=1)
+            cnt_plan[0][1][1:4] = u
+        
+            cnt_plan[2][0][0] = 1
+            cnt_plan[2][0][1:4] = action
+        
+        traj, force = self.cent_mp.optimize(x0, cnt_plan, xT, self.w, self.ter_w, np.round(2*self.step_time + self.air_time,2))
+        
+        com = np.repeat(traj[0:3], self.delta_t/self.dt, axis=1)
+        dcom = np.repeat(traj[3:6], self.delta_t/self.dt, axis=1)
+        
+        f = np.zeros(np.shape(force)[1:])
+        for n in range(2):
+            f[0] += force[n][0]
+            f[1] += force[n][1]
+            f[2] += force[n][2]
+            
+        f = np.repeat(f, self.delta_t/self.dt, axis=1)
 
         return com, dcom, f
 
@@ -262,12 +289,12 @@ class BulletSLCBoltEnv:
         '''
         self.n += 1
         q, dq = self.robot.get_state()
-        des_com, des_dcom, f = self.generate_base_traj(q, dq, action, self.n)
+        des_com, des_dcom, f = self.generate_base_traj(q, dq, self.u, action, self.n)
 
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         u_t = action
         
-        for t in range(int((self.step_time+self.air_time)/self.dt)):
+        for t in range(int((2*self.step_time+self.air_time)/self.dt)):
             p.stepSimulation()
             time.sleep(0.001)
             if force:
@@ -275,25 +302,28 @@ class BulletSLCBoltEnv:
 
             q, dq = self.robot.get_state()
 
-            x_des, xd_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, \
+            x_des, xd_des, cnt_array = self.generate_foot_traj(q, dq, fl_foot, fr_foot, \
                             self.n, u_t, self.dt*t, des_com[:,t] - self.base_offset, des_dcom[:,t])
-
+            
             w_com = self.centr_controller.compute_com_wrench(q, dq, des_com[:,t], des_dcom[:,t],[0, 0, 0, 1], [0, 0, 0])
             w_com[0:3] += f[:,t] # feed forward force
             F = self.centr_controller.compute_force_qp(q, dq, cnt_array, w_com)
             tau = self.bolt_leg_ctrl.return_joint_torques(q,dq,self.kp,self.kd,x_des, xd_des,F)
+
             self.robot.send_joint_command(tau)
     
             self.t += 1
 
         q, dq = self.robot.get_state()
-        base, dbase = self.get_base_state(q, dq)
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
+        base, base_ori = self.get_base_state(q, dq)
+        
         if np.power(-1, self.n) < 0:
-            u = fr_foot
+            self.u = np.around(fr_foot[0:3], 2)
         else:
-            u = fl_foot
-        return base[0:3].T, np.around(dbase[0:3].T, 2), np.around(u[0:3], 2), np.power(-1, self.n + 1)
+            self.u = np.around(fl_foot[0:3], 2)
+ 
+        return base[0:5].T, self.u, np.power(-1, self.n + 1)
 
     def start_recording(self, file_name):
         self.robot.start_recording(file_name)
