@@ -50,7 +50,6 @@ class BulletCentBoltEnv:
         self.total_mass = sum([i.mass for i in self.robot.pin_robot.model.inertias[1:]])
         q0 = np.matrix(BoltConfig.initial_configuration).T
         self.inertia = np.diag(self.robot.pin_robot.mass(q0)[3:6, 3:6])
-        
         # Robot parameters to account for to match IPM training env
         # size of the foot diameter
         self.foot_size = 0.02
