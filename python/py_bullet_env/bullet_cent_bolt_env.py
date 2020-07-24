@@ -49,7 +49,7 @@ class BulletCentBoltEnv:
         self.robot = BoltRobot()
         self.total_mass = sum([i.mass for i in self.robot.pin_robot.model.inertias[1:]])
         q0 = np.matrix(BoltConfig.initial_configuration).T
-        self.inertia = np.diag(self.robot.pin_robot.mass(q0)[3:6, 3:6])
+        self.inertia = np.diag(self.robot.pin_robot.mass(q0)[3:6, 3:6]).copy()
         # Robot parameters to account for to match IPM training env
         # size of the foot diameter
         self.foot_size = 0.02
@@ -73,7 +73,9 @@ class BulletCentBoltEnv:
 
         # Trajectory Generator initialisation
         self.trj = TrajGenerator(self.robot.pin_robot)
-        self.f_lift = 0.07 ## height the foot lifts of the ground
+        #this to generate a trajectory for the foot lifting of the ground through the air face
+        self.trj_lift = TrajGenerator(self.robot.pin_robot)
+        self.f_lift = 0.06 ## height the foot lifts of the ground
         
         # State estimation initialisation
         self.sse = BoltStateEstimator(self.robot.pin_robot)
@@ -174,43 +176,77 @@ class BulletCentBoltEnv:
         if np.power(-1, n) < 0: ## fr reaches the ground
             via_point = self.f_lift + u_t[2]
             u_t_des = [[fl_foot[0], fl_foot[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
-            x_des[3:6], xd_des[3:6] = self.trj.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
-            x_des[3:6] = np.subtract(x_des[3:6], [fr_hip[0], fr_hip[1], des_com[2]])
             
             if t < self.step_time:
                 cnt_array = [1, 0]
+                u_t_des = [[fl_foot[0], fl_foot[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
+
                 x_des[0:3] = np.subtract(u_t_des[0], [fl_hip[0], fl_hip[1], des_com[2]])
+                xd_des[0:3] = np.subtract([0, 0, 0], des_dcom)
+                x_des[3:6], xd_des[3:6] = self.trj.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
+                x_des[3:6] = np.subtract(x_des[3:6], [fr_hip[0], fr_hip[1], des_com[2]])
+                xd_des[3:6] = np.subtract(xd_des[3:6], des_dcom)
 
             elif t < self.step_time + self.air_time:
                 cnt_array = [0, 0]
-                x_des[0:3] = [0, 0, -0.1] # fix this
+
+                u_t_des = [[fl_hip[0], fl_hip[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
+                u_t_des[0][2] = fl_foot[2] + self.f_lift
+                x_des[0:3], xd_des[0:3] = self.trj_lift.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, 0.5*u_t_des[0][2]], self.step_time + self.air_time,t-self.step_time)
+                x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_com[2]])
+                xd_des[0:3] = np.subtract(xd_des[0:3], des_dcom)
+
+                x_des[3:6], xd_des[3:6] = self.trj.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
+                x_des[3:6] = np.subtract(x_des[3:6], [fr_hip[0], fr_hip[1], des_com[2]])
+                xd_des[3:6] = np.subtract(xd_des[3:6], des_dcom)
 
             elif t < 2*self.step_time + self.air_time: # fr on ground fl in the air
                 cnt_array = [0, 1]
-                x_des[0:3] = [0, 0, -0.1] # fix this
+
+                u_t_des = [[fl_hip[0], fl_hip[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
+                u_t_des[0][2] = fl_foot[2] + self.f_lift
+
+                x_des[0:3], xd_des[0:3] = self.trj_lift.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, 0.5*u_t_des[0][2]], self.step_time + self.air_time,t-self.step_time)
+                x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_com[2]])
+                xd_des[0:3] = np.subtract(xd_des[0:3], des_dcom)
+                
                 x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_com[2]])
                 xd_des[3:6] = np.subtract([0, 0, 0], des_dcom)
                 
         if np.power(-1, n) > 0: # fl reaches the ground
             via_point = self.f_lift + u_t[2]
-            u_t_des = [[u_t[0], u_t[1], u_t[2]], [fr_foot[0], fr_foot[1], fr_foot[2]]]
-            x_des[0:3], xd_des[0:3] = self.trj.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
-            x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_com[2]])
-                
+
             if t < self.step_time: #fl in the air
                 cnt_array = [0, 1]
-                x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_com[2]])
+                u_t_des = [[u_t[0], u_t[1], u_t[2]], [fr_foot[0], fr_foot[1], fr_foot[2]]]
 
+                x_des[0:3], xd_des[0:3] = self.trj.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
+                x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_com[2]])
+                xd_des[0:3] = np.subtract(xd_des[0:3], des_dcom)
+                x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_com[2]])
+                xd_des[3:6] = np.subtract([0, 0, 0], des_dcom)
+    
             elif t < self.step_time + self.air_time: # both feet in the air
                 cnt_array = [0, 0]
-                x_des[3:6] = [0, 0, -0.1] # fix this
-            
+                u_t_des = [[u_t[0], u_t[1], u_t[2]], [fr_hip[0], fr_hip[1], fr_foot[2] + self.f_lift]]
+                x_des[0:3], xd_des[0:3] = self.trj.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, via_point], self.step_time + self.air_time,t)
+                x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_com[2]])
+                xd_des[0:3] = np.subtract(xd_des[0:3], des_dcom)
+                
+                x_des[3:6], xd_des[3:6] = self.trj_lift.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, 0.5*u_t_des[1][2]], self.step_time + self.air_time,t - self.step_time)
+                x_des[3:6] = np.subtract(x_des[3:6], [fr_hip[0], fr_hip[1], des_com[2]])
+                xd_des[3:6] = np.subtract(xd_des[3:6], des_dcom)
+                
             elif t < 2*self.step_time + self.air_time: # fl on ground fr in the air
                 cnt_array = [1, 0]
+                u_t_des = [[u_t[0], u_t[1], u_t[2]], [fr_hip[0], fr_hip[1], fr_foot[2] + self.f_lift]]
                 x_des[0:3] = np.subtract(u_t_des[0], [fl_hip[0], fl_hip[1], des_com[2]])
                 xd_des[0:3] = np.subtract([0, 0, 0], des_dcom)
-                x_des[3:6] = [0, 0, -0.1] # fix this
 
+                x_des[3:6], xd_des[3:6] = self.trj_lift.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, 0.5*u_t_des[1][2]], self.step_time + self.air_time,t - self.step_time)
+                x_des[3:6] = np.subtract(x_des[3:6], [fr_hip[0], fr_hip[1], des_com[2]])
+                xd_des[3:6] = np.subtract(xd_des[3:6], des_dcom)
+                
         return x_des, xd_des, cnt_array
 
     def apply_force(self, F):
@@ -293,6 +329,8 @@ class BulletCentBoltEnv:
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         u_t = action
         
+        arr = []
+
         for t in range(int((2*self.step_time+self.air_time)/self.dt)):
             p.stepSimulation()
             time.sleep(0.001)
@@ -300,6 +338,8 @@ class BulletCentBoltEnv:
                 self.apply_force(force)
 
             q, dq = self.robot.get_state()
+
+            arr.append(np.reshape(np.array(dq[0:3]), (3,)))
 
             x_des, xd_des, cnt_array = self.generate_foot_traj(q, dq, fl_foot, fr_foot, \
                             self.n, u_t, self.dt*t, des_com[:,t] - self.base_offset, des_dcom[:,t])
@@ -321,7 +361,7 @@ class BulletCentBoltEnv:
             self.u = np.around(fr_foot[0:3], 2)
         else:
             self.u = np.around(fl_foot[0:3], 2)
- 
+
         return base[0:5].T, self.u, np.power(-1, self.n + 1)
 
     def start_recording(self, file_name):

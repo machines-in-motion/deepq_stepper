@@ -20,7 +20,8 @@ class NN(nn.Module):
         self.l5 = nn.Linear(512, 512)
         self.l6 = nn.Linear(512, 512)
         self.l7 = nn.Linear(512, 512)
-        self.l8 = nn.Linear(512, out_size)
+        self.l8 = nn.Linear(512, 512)
+        self.l9 = nn.Linear(512, out_size)
     
     def forward(self, x):
         
@@ -31,9 +32,9 @@ class NN(nn.Module):
         x = F.relu(self.l5(x))
         x = F.relu(self.l6(x))
         x = F.relu(self.l7(x))
-        x = self.l8(x)
+        x = F.relu(self.l8(x))
+        x = self.l9(x)
         return x
-
 
 class DQStepper:
     def __init__(self, env, lr = 1e-4, gamma = 0.9, use_tarnet = False, trained_model = None):
@@ -177,18 +178,23 @@ class CentEnv:
         # This means that left leg is on the positive side of the y axis
         # The addition b is added to accomodate a step length larger than leg length as it may be feasible
         # in high velocity cases.
-        self.action_space_x = np.around(np.linspace(-max_step_length, max_step_length, no_actions[0]), 2)
+        
+        if no_actions[0] == 1:
+            self.action_space_x = [0.0]
+        else:
+            self.action_space_x = np.around(np.linspace(-max_step_length, max_step_length, no_actions[0]), 2)
         
         # actions to the free side
         if b > 0 :
-            self.action_space_ly = np.linspace(b, max_step_length/2.0 + b, int(3*no_actions[1]/4))
+            self.action_space_ly = np.geomspace(b, max_step_length/1.0 + b, int(6*no_actions[1]/9))
             # actions to the non free side where leg can hit the other leg
             # Y axis actions step length allowed such that robot can't step to the left of the left leg
             # or the right to the right leg (no criss crossing)
-            self.action_space_ry = np.linspace(0, b, int(no_actions[1]/4), endpoint = False)
+            self.action_space_ry = np.linspace(0, b, int(3*no_actions[1]/9), endpoint = False)
             self.action_space_y = np.around(np.concatenate((self.action_space_ry, self.action_space_ly)), 2)
+        
         else:
-            self.action_space_y = np.around(np.linspace(0, max_step_length/2.0, int(no_actions[1])), 2)
+            self.action_space_y = np.around(np.linspace(0, max_step_length/1.0, int(no_actions[1])), 2)
         
         self.t = 0
         # motion planner params
@@ -329,129 +335,4 @@ class CentEnv:
         action_z = np.random.rand(-self.max_step_ht, self.max_step_ht)
         
         return [action_x, action_y, action_z]
-    
-    def show_episode(self, freq):
-        '''
-        Shows animation
-        Input :
-            freq : frame rate
-        '''
-        sim_data = np.array([self.sim_data[:,0]]).T
-        
-        for t in range(len(self.sim_data[0])-1):
-            tmp = np.linspace(self.sim_data[:,t], self.sim_data[:,t+1], 10).T
-            sim_data = np.concatenate((sim_data, tmp), axis=1)
-        
-        sim_data = sim_data[:,::freq]
-        
-        fig = plt.figure()
-        ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
-        text_str = "top view of IPM"
-        base, = ax.plot([], [], lw=3, color = 'blue')
-        leg, = ax.plot([], [], lw=3, color = 'pink')
-        com, = ax.plot([], [], 'o', color='red')
-        foot, = ax.plot([], [], 'o', color='green')
-
-        
-        def init():
-            base.set_data([], [])
-            leg.set_data([], [])
-            com.set_data([], [])
-            foot.set_data([], [])
-            return base, leg, com, foot
-        
-        def animate(i):
-            x = sim_data[:,i][0]
-            y = sim_data[:,i][1]
-            if sim_data[:,i][13] == 1 or sim_data[:,i][13] == -1:
-                ux = sim_data[:,i][10]
-                uy = sim_data[:,i][11]
-            else:
-                ux = x
-                uy = y
-            
-            if sim_data[:,i][13] > 0:
-                n = 1
-            else:
-                n = -1
-            
-            base.set_data([x, x], [y - self.b/2, y + self.b/2])
-            leg.set_data([x, ux], [y - n*(self.b/2), uy])
-            com.set_data([x], [y])
-            foot.set_data([ux], [uy])
-            return base,leg, com, foot
-        
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        ax.text(0.05, 0.95, text_str, transform=ax.transAxes, fontsize=15,
-        verticalalignment='top', bbox=props)
-        
-        anim = FuncAnimation(fig, animate, init_func=init,
-                                       frames=np.shape(sim_data)[1], interval=25, blit=True)
-        plt.grid()
-        plt.close(fig)
-        plt.close(anim._fig)
-        IPython.display.display_html(IPython.core.display.HTML(anim.to_html5_video()))
-    
-    def show_episode_side(self, freq):
-        '''
-        shows animation from the side view
-        Input:
-            freq : frame rate
-        '''
-
-        sim_data = np.array([self.sim_data[:,0]]).T
-        
-        for t in range(len(self.sim_data[0])-1):
-            tmp = np.linspace(self.sim_data[:,t], self.sim_data[:,t+1], 10).T
-            sim_data = np.concatenate((sim_data, tmp), axis=1)
-        
-        sim_data = sim_data[:,::freq]
-        
-        fig = plt.figure()
-        ax = plt.axes(xlim=(-2, 2), ylim=(-0.2, 0.5))
-        text_str = "side view (xz plane)"
-        leg, = ax.plot([], [], lw=4)
-        body, = ax.plot([], [], lw=4)
-        head, = ax.plot([], [], 'o', color='green')
-        com, = ax.plot([], [], 'o', color='red')
-        foot, = ax.plot([], [], 'o', color='pink')
-        
-        def init():
-            leg.set_data([], [])
-            body.set_data([], [])
-            head.set_data([], [])
-            com.set_data([], [])
-            foot.set_data([], [])
-            
-            return leg, body, head, com, foot
-        
-        def animate(i):
-            x = sim_data[:,i][0]
-            y = sim_data[:,i][2]
-            
-            if sim_data[:,i][13] == 1 or sim_data[:,i][13] == -1:
-                ux = sim_data[:,i][10]
-                uy = sim_data[:,i][12]
-            else:
-                ux = x
-                uy = y - self.com_offset
-            
-            leg.set_data([ux,x], [uy,y - self.com_offset])
-            com.set_data([x, y])
-            body.set_data([x, x], [y, y - self.com_offset])
-            head.set_data([x, y])
-            foot.set_data([ux, uy])
-
-            return leg, com, body, head, foot
-        
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        ax.text(0.05, 0.95, text_str, transform=ax.transAxes, fontsize=15,
-        verticalalignment='top', bbox=props)
-        
-        anim = FuncAnimation(fig, animate, init_func=init,
-                                       frames=np.shape(sim_data)[1], interval=25, blit=True)
-
-        plt.close(fig)
-        plt.close(anim._fig)
-        IPython.display.display_html(IPython.core.display.HTML(anim.to_html5_video()))
     
