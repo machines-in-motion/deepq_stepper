@@ -90,6 +90,12 @@ class BulletCentBoltEnv:
 
         self.cent_mp = CentMotionPlanner(self.delta_t, 2, self.total_mass, self.inertia, self.f_max, self.max_ht)
         
+        ## arrays to store data
+
+        self.des_com = []
+        self.act_com = []
+        self.act_ori = []
+
     def convert_quat_rpy(self, quat):
         '''
         This function converts quaternion to roll pitch yaw
@@ -324,13 +330,17 @@ class BulletCentBoltEnv:
         '''
         self.n += 1
         q, dq = self.robot.get_state()
+
         des_com, des_dcom, f = self.generate_base_traj(q, dq, self.u, action, self.n)
+
+        if len(self.des_com) < 2:
+            self.des_com = des_com
+        else:
+            self.des_com = np.concatenate((self.des_com, des_com), axis = 1)
 
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         u_t = action
         
-        arr = []
-
         for t in range(int((2*self.step_time+self.air_time)/self.dt)):
             p.stepSimulation()
             time.sleep(0.001)
@@ -339,7 +349,8 @@ class BulletCentBoltEnv:
 
             q, dq = self.robot.get_state()
 
-            arr.append(np.reshape(np.array(dq[0:3]), (3,)))
+            self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
 
             x_des, xd_des, cnt_array = self.generate_foot_traj(q, dq, fl_foot, fr_foot, \
                             self.n, u_t, self.dt*t, des_com[:,t] - self.base_offset, des_dcom[:,t])
@@ -356,7 +367,7 @@ class BulletCentBoltEnv:
         q, dq = self.robot.get_state()
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         base, base_ori = self.get_base_state(q, dq)
-        
+
         if np.power(-1, self.n) < 0:
             self.u = np.around(fr_foot[0:3], 2)
         else:
@@ -369,3 +380,52 @@ class BulletCentBoltEnv:
 
     def stop_recording(self):
         self.robot.stop_recording()
+
+    def plot(self):
+
+        self.act_com = np.asarray(self.act_com)
+        self.act_ori = np.asarray(self.act_ori)
+        self.des_com = np.asarray(self.des_com)
+        T = len(self.act_com[:,0])
+        t = 0.001*np.arange(0,T)
+
+        fig, ax = plt.subplots(6,1)
+        ax[0].plot(t,self.act_com[:,0], label = 'cx')
+        ax[0].plot(t, self.des_com[0][0:T], label = 'des_cx')
+        ax[0].grid()
+        ax[0].legend()
+        ax[0].set_ylabel('meters')
+
+        ax[1].plot(t,self.act_com[:,1], label = 'cy')
+        ax[1].plot(t, self.des_com[1][0:T], label = 'des_cy')
+        ax[1].grid()
+        ax[1].legend()
+        ax[1].set_ylabel('meters')
+
+        ax[2].plot(t,self.act_com[:,2], label = 'cz')
+        ax[2].plot(t, self.des_com[2][0:T], label = 'des_cz')
+        ax[2].grid()
+        ax[2].legend()
+        ax[2].set_ylabel('meters')
+
+
+        ax[3].plot(t,self.act_ori[:,0], label = 'ang_cx')
+        ax[3].plot(t, np.zeros(T), label = 'des_ang_cx')
+        ax[3].grid()
+        ax[3].legend()
+        ax[3].set_ylabel('degree')
+        
+        ax[4].plot(t,self.act_ori[:,1], label = 'ang_cy')
+        ax[4].plot(t, np.zeros(T), label = 'des_ang_cx')
+        ax[4].grid()
+        ax[4].legend()
+        ax[4].set_ylabel('degree')
+
+        ax[5].plot(t,self.act_ori[:,2], label = 'ang_cz')
+        ax[5].plot(t, np.zeros(T), label = 'des_ang_cz')
+        ax[5].grid()
+        ax[5].legend()
+        ax[5].set_ylabel('degree')
+        ax[5].set_xlabel('sec')
+
+        plt.show()
