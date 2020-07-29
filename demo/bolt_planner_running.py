@@ -31,7 +31,7 @@ print(env_y.action_space_y)
 ###################################################################
 F = [0, 0, 0]
 w = 0.0
-no_steps = 10
+no_steps = 8
 des_com = [0.0, 0, ht]
 des_vel = [0.0, 0.0, 0]
 x_ori = [0, 0, 0, 1]
@@ -39,7 +39,10 @@ x_angvel = [0, 0, 0]
 
 x, u, n = bolt_env.reset_env()
 state = np.around([x[0] - u[0], x[1] - u[1], x[2] - u[2], x[3], x[4], n, des_vel[0], des_vel[1]],2)
-bolt_env.update_gains([30, 30, 35], [1.0, 1.0, 1], [0, 0, 20], [0, 0, 2], [10, 10, 0], [1, 1, 0])
+bolt_env.update_gains([30, 30, 35], [1.0, 1.0, 1], [0, 0, 20], [0, 0, 2], [10, 10, 0], [1, 1, 0]) # dqs_2
+
+# bolt_env.update_gains([50, 50, 35], [2.0, 2.0, 1.0], [0, 0, 20], [0, 0, 2], [10, 10, 0], [1, 1, 0]) # dqs_1
+# bolt_env.start_recording("prel_running.mp4")
 
 for i in range(no_steps):
     
@@ -48,11 +51,13 @@ for i in range(no_steps):
     state_x = state.copy()
     state_x[1] = 0.0
     state_x[4] = 0.0
+    state_x[7] = 0.0
     action_x = dqs_x.predict_q(state_x, terrain)[1] 
     # for y axis
     state_y = state.copy()
     state_y[0] = 0.0
     state_y[3] = 0.0
+    state_y[6] = 0.0
     action_y = dqs_y.predict_q(state_y, terrain)[1] 
     action = np.array([int(action_x[0]), int(action_y[1]), 0])
     
@@ -65,9 +70,12 @@ for i in range(no_steps):
         
     x, u_new, n = bolt_env.step_env([u_x, u_y, u_z])
 
-    # print(action, state[0:6])
-    print(u_new, [u_x, u_y, u_z])
+    print(action, state[0:6])
+    # print(u_new, [u_x, u_y, u_z])
 
     u = u_new
     state = np.around([x[0] - u[0], x[1] - u[1], x[2] - u[2], x[3], x[4], n, des_vel[0], des_vel[1]], 2)
-    
+
+# bolt_env.plot()
+
+# bolt_env.stop_recording()
