@@ -343,7 +343,7 @@ class BulletCentBoltEnv:
         
         for t in range(int((2*self.step_time+self.air_time)/self.dt)):
             p.stepSimulation()
-            time.sleep(0.001)
+            time.sleep(0.0005)
             if force:
                 self.apply_force(force)
 

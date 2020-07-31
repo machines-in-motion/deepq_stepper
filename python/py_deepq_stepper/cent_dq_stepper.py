@@ -336,3 +336,29 @@ class CentEnv:
         
         return [action_x, action_y, action_z]
     
+
+
+def predict_terrain_action_value(state, action, dqs_x, dqs_y):
+    terrain = 0.00
+    # for x axis
+    state_x = np.zeros(11)
+    state_x[0:8] = state.copy()
+    state_x[1] = 0.0
+    state_x[4] = 0.0
+    state_x[7] = 0.0
+    state_x[8] = action[0]
+    state_x[10] = action[2]
+    state_x_in = torch.FloatTensor(state_x, device = dqs_x.device)
+    q_x = dqs_x.dq_stepper(state_x_in)
+    # for y axis
+    state_y = np.zeros(11)
+    state_y[0:8] = state.copy()
+    state_y[0] = 0.0
+    state_y[3] = 0.0
+    state_y[6] = 0.0
+    state_y[9] = action[1]
+    state_y[10] = action[2]
+    state_y_in = torch.FloatTensor(state_y, device = dqs_y.device)
+    q_y = dqs_y.dq_stepper(state_y_in)
+    
+    return q_x + q_y
