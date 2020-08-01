@@ -6,6 +6,8 @@ import numpy as np
 from py_deepq_stepper.dq_stepper import DQStepper, InvertedPendulumEnv
 from py_bullet_env.bullet_bolt_env import BoltBulletEnv
 from py_bullet_env.bullet_env_handler import TerrainHandler
+
+import pybullet as p
 #####################################################################
 kp = [35, 35, 25]
 kd = [10, 10, 10]
@@ -18,7 +20,7 @@ step_time = 0.1
 stance_time = 0.03
 ht = 0.28
 
-terrain_dir = "/home/ameduri/pydevel/workspace/src/catkin/deepq_stepper/python/py_bullet_env/terrains/stairs.urdf"
+terrain_dir = "/home/ameduri/py_devel/workspace/src/catkin/deepq_stepper/python/py_bullet_env/terrains/uneven.urdf"
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com)
 bolt_env.load_terrain(terrain_dir)
 terr = TerrainHandler(terrain_dir)
@@ -32,27 +34,35 @@ dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
 ###################################################################
 F = [0, 0, 0]
 w = 0.0
-no_steps = 40
-des_vel = [0.5, 0.0, 0]
+no_steps = 130
+des_vel = [0.4, 0.0, 0]
 
 x, xd, u, n = bolt_env.reset_env()
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, des_vel[0], des_vel[1]]
-bolt_env.update_gains([25, 25, 25], [7, 7, 10], [0, 0, 20], [0, 0, 10], [50, 50, 0], [50, 50, 0])
+bolt_env.update_gains([30, 30, 25], [7, 7, 10], [0, 0, 20], [0, 0, 10], [50, 50, 0], [50, 50, 0])
 xd_arr = []
 # bolt_env.start_recording("3d_stepping.mp4")
 for i in range(no_steps):
-    # if i > 22 and i < 26:
-    #     F = [-3, 0, 0]
-    # else:
-    #     F = [0, 0, 0]
-    
+
+    # p.resetDebugVisualizerCamera( cameraDistance=0.7, cameraYaw=30, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
+
+    if i > 38 and i < 85:   
+        des_vel = [0.0, -0.5, 0]
+        # p.resetDebugVisualizerCamera( cameraDistance=0.7, cameraYaw=45, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
+    elif i > 85 and i < 105:
+        des_vel = [-0.6, 0.0, 0]
+        # p.resetDebugVisualizerCamera( cameraDistance=0.8, cameraYaw=30, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
+    elif i > 105 and i < 130:
+        des_vel = [0.0, 0.0, 0]
+        # p.resetDebugVisualizerCamera( cameraDistance=0.8, cameraYaw=30, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
+
     terrain = dqs.x_in[:,8:].copy()
     for i in range(len(dqs.x_in)):
         u_y = n*env.action_space_y[int(dqs.x_in[i,9])] + u[1]
         u_x = env.action_space_x[int(dqs.x_in[i,8])] + u[0]
-        u_z = terr.return_terrain_height(u_x, u_y)
+        u_z = terr.return_terrain_height(u_x, u_y, u[2])
         terrain[i,2] = np.around(u_z - u[2], 2)
-
+        
     q_values, _ = dqs.predict_q(state, terrain[:,2])
     while True:
         action_index = np.argmin(q_values)
@@ -61,16 +71,20 @@ for i in range(no_steps):
             break
         else:
             np.delete(terrain, action_index)
-    # print(state[2])
+    
     u_x = env.action_space_x[int(action[0])] + u[0]
     u_y = n*env.action_space_y[int(action[1])] + u[1]
     u_z = action[2] + u[2]
-    # print(u_x, u_y, u_z)
+    # print(np.round(u_z,2))
     x, xd, u_new, n = bolt_env.step_env([u_x, u_y, u_z], des_vel, F)
     xd_arr.append(xd[0])
     u = u_new
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, des_vel[0], des_vel[1]]
 
-bolt_env.stop_recording()
+
+
+# bolt_env.stop_recording()
+
+# bolt_env.plot()
 
 print(np.average(xd_arr))

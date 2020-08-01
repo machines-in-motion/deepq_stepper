@@ -4,8 +4,7 @@
 
 import numpy as np
 
-# from urdf_parser_py.urdf import URDF
-
+import pybullet as p
 from urdfpy import URDF
 
 class TerrainHandler:
@@ -38,7 +37,7 @@ class TerrainHandler:
         else: 
             return 999999
 
-    def return_terrain_height(self, ux, uy):
+    def return_terrain_height_old(self, ux, uy):
         '''
         Returns the height of the terrain for the given step location
         Input:
@@ -59,7 +58,22 @@ class TerrainHandler:
                            break
 
         return ht
-                            
+                  
+    def return_terrain_height(self, ux, uy, z_foot):
+        '''
+        This function computes height of terrain using ray tracing
+        Input:
+            ux : step location in x (world frame)
+            uy : step location in y (world frame)
+            z_foot: location of the foot in the z axis
+        '''
+        u_z = np.around(p.rayTest([ux, uy, 0.06 + z_foot], [ux, uy, -1])[0][3][2], 2)
+        if u_z > 0.07:
+            u_z = 0.07
+        return u_z
+
+
+        
 
 
 
