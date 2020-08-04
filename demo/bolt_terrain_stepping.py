@@ -41,20 +41,22 @@ x, xd, u, n = bolt_env.reset_env()
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, des_vel[0], des_vel[1]]
 bolt_env.update_gains([30, 30, 25], [7, 7, 10], [0, 0, 20], [0, 0, 10], [50, 50, 0], [50, 50, 0])
 xd_arr = []
-# bolt_env.start_recording("3d_stepping.mp4")
+
+# bolt_env.start_recording("3d_stepping_room.mp4")
 for i in range(no_steps):
 
-    # p.resetDebugVisualizerCamera( cameraDistance=0.7, cameraYaw=30, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
+    if i < 33:
+        p.resetDebugVisualizerCamera( cameraDistance=0.7, cameraYaw=120, cameraPitch=-15, cameraTargetPosition=[0.5, 0,0])
 
-    if i > 38 and i < 85:   
-        des_vel = [0.0, -0.5, 0]
-        # p.resetDebugVisualizerCamera( cameraDistance=0.7, cameraYaw=45, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
-    elif i > 85 and i < 105:
-        des_vel = [-0.6, 0.0, 0]
-        # p.resetDebugVisualizerCamera( cameraDistance=0.8, cameraYaw=30, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
-    elif i > 105 and i < 130:
+    elif i > 33 and i < 100:   
+        des_vel = [0.0, -0.55, 0]
+        p.resetDebugVisualizerCamera( cameraDistance=1.2, cameraYaw=45, cameraPitch=-15, cameraTargetPosition=[0.5,0,0])
+    elif i > 100 and i < 125:
+        des_vel = [-0.5, 0.0, 0]
+        p.resetDebugVisualizerCamera( cameraDistance=1.2, cameraYaw=0, cameraPitch=-15, cameraTargetPosition=[0.55, 0.0,0])
+    elif i > 125 and i < 130:
         des_vel = [0.0, 0.0, 0]
-        # p.resetDebugVisualizerCamera( cameraDistance=0.8, cameraYaw=30, cameraPitch=-15, cameraTargetPosition=[x[0],x[1],0])
+        p.resetDebugVisualizerCamera( cameraDistance=1.2, cameraYaw=0, cameraPitch=-15, cameraTargetPosition=[0.55,0.0,0])
 
     terrain = dqs.x_in[:,8:].copy()
     for i in range(len(dqs.x_in)):
@@ -85,6 +87,6 @@ for i in range(no_steps):
 
 # bolt_env.stop_recording()
 
-# bolt_env.plot()
+bolt_env.plot()
 
 print(np.average(xd_arr))

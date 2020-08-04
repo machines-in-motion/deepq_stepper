@@ -7,12 +7,12 @@
       <restitution value="0.0"/>
     </contact>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.04"/>
+      <origin rpy="0 0 0" xyz="0 0 0.00"/>
       <mass value=".0"/>
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.04"/>
+      <origin rpy="0 0 0" xyz="0 0 0.00"/>
       <geometry>
         <box size=".2 0.8 .01"/>      </geometry>
       <material name="purple">
@@ -20,7 +20,7 @@
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.04"/>
+      <origin rpy="0 0 0" xyz="0 0 0.00"/>
       <geometry>
         <box size=".2 0.8 .01"/>
       </geometry>
@@ -188,38 +188,6 @@
       <origin xyz="0 0 0 "/>
   </joint>
 
-  <link name="sixth_step_link">
-    <contact>
-      <lateral_friction value="25.0"/>
-      <restitution value="0.0"/>
-    </contact>
-    <inertial>
-      <origin rpy="0 -0.5 0" xyz="1.2 -.0 .03"/>
-      <mass value=".0"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 -1.5 0" xyz="1.2 -.0 0.03"/>
-      <geometry>
-        <box size=".6 0.7 .01"/> 
-        </geometry>
-      <material name="black">
-        <color rgba="0 0 0 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin rpy="0 -1.5 0" xyz="1.2 -.0 0.03"/>
-      <geometry>
-        <box size=".6 0.7 .01"/> 
-      </geometry>
-    </collision>
-  </link>
- 
- <joint name="fifth_to_sixth_step" type="fixed">
-      <parent link="fifth_step_link"/>
-      <child link="sixth_step_link"/>
-      <origin xyz="0 0 0 "/>
-  </joint>
 
 <link name="seventh_step_link">
     <contact>
@@ -249,7 +217,7 @@
   </link>
  
  <joint name="sixth_to_seventh_step" type="fixed">
-      <parent link="sixth_step_link"/>
+      <parent link="ground_link"/>
       <child link="seventh_step_link"/>
       <origin xyz="0 0 0 "/>
   </joint>
@@ -287,71 +255,105 @@
       <origin xyz="0 0 0 "/>
   </joint>
 
-  <link name="ninth_step_link">
+<link name="ninth_step_link">
     <contact>
       <lateral_friction value="25.0"/>
       <restitution value="0.0"/>
     </contact>
     <inertial>
-      <origin rpy="0 -0.5 0" xyz="0.6 -.4 .03"/>
+      <origin rpy="0 0 0" xyz="1. .2 -.18"/>
       <mass value=".0"/>
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
     <visual>
-      <origin rpy="0 -1.5 -1.5" xyz="0.3 -.4 0.03"/>
+      <origin rpy="0 0 0" xyz="1. .2 -0.18"/>
       <geometry>
-        <box size="0.6 0.95 .01"/> 
+        <sphere radius ="0.25"/>
         </geometry>
-      <material name="red">
-        <color rgba="1 0 0 1"/>
+      <material name="yellow">
+        <color rgba="1 1 0 1"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 -1.5 -1.5" xyz="0.5 -.4 0.03"/>
+      <origin rpy="0 0 0" xyz="1. .2 -0.18"/>
       <geometry>
-        <box size="0.6 0.75 .01"/> 
+        <sphere radius ="0.25"/>
       </geometry>
     </collision>
   </link>
  
- <joint name="eight_to_ninth_step" type="fixed">
-      <parent link="eight_step_link"/>
+ <joint name="ground_to_ninth_step" type="fixed">
+      <parent link="ground_link"/>
       <child link="ninth_step_link"/>
       <origin xyz="0 0 0 "/>
   </joint>
 
-  <link name="end_step_link">
+<link name="tenth_step_link">
     <contact>
       <lateral_friction value="25.0"/>
       <restitution value="0.0"/>
     </contact>
     <inertial>
-      <origin rpy="0 0 0" xyz="0.4 -.6 -.0"/>
+      <origin rpy="0 0 0" xyz="1. -.2 -.18"/>
       <mass value=".0"/>
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
     <visual>
-      <origin rpy="0 0 0" xyz="0.4 -.6 -0.0"/>
+      <origin rpy="0 0 0" xyz="1. -.2 -0.18"/>
       <geometry>
-        <box size="0.4 0.4 .01"/> 
+        <sphere radius ="0.25"/>
         </geometry>
-      <material name="green">
-        <color rgba="0 1 0 1"/>
+      <material name="yellow">
+        <color rgba="1 1 0 1"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0.4 -.8 -0.0"/>
+      <origin rpy="0 0 0" xyz="1. -.2 -0.18"/>
       <geometry>
-        <box size="0.4 0.4 .01"/> 
+        <sphere radius ="0.25"/>
       </geometry>
     </collision>
   </link>
  
- <joint name="end_joint" type="fixed">
-      <parent link="seventh_step_link"/>
-      <child link="end_step_link"/>
+ <joint name="ground_to_tenth_step" type="fixed">
+      <parent link="ground_link"/>
+      <child link="tenth_step_link"/>
       <origin xyz="0 0 0 "/>
   </joint>
+
+<link name="eleventh_step_link">
+    <contact>
+      <lateral_friction value="25.0"/>
+      <restitution value="0.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="1.1 0.0 -.18"/>
+      <mass value=".0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="1.1 0.0 -0.18"/>
+      <geometry>
+        <sphere radius ="0.25"/>
+        </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="1.1 0.0 -0.18"/>
+      <geometry>
+        <sphere radius ="0.25"/>
+      </geometry>
+    </collision>
+  </link>
+ 
+ <joint name="ground_to_eleventh_step" type="fixed">
+      <parent link="ground_link"/>
+      <child link="eleventh_step_link"/>
+      <origin xyz="0 0 0 "/>
+  </joint>
+
 
 
 </robot>

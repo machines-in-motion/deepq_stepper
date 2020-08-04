@@ -84,7 +84,7 @@ class BoltBulletEnv:
         ## arrays to store data
         self.act_com = []
         self.act_dcom = []
-
+        self.des_dcom = []
 
     def get_com_state(self, q, dq):
         '''
@@ -213,6 +213,7 @@ class BoltBulletEnv:
             q, dq = self.robot.get_state()
             self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
             self.act_dcom.append(np.reshape(np.array(dq[0:3]), (3,)))
+            self.des_dcom.append(des_vel[0:2])
 
             x_des, xd_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, \
                             self.n, u_t, self.dt*t, self.stance_time, des_z[t] - self.base_offset, des_zd[t])
@@ -246,6 +247,9 @@ class BoltBulletEnv:
         
         self.act_com = np.asarray(self.act_com)
         self.act_dcom = np.asarray(self.act_dcom)
+        self.des_dcom = np.asarray(self.des_dcom)
+
+        
         
         T = len(self.act_com[:,0])
         t = 0.001*np.arange(0,T)
@@ -267,11 +271,13 @@ class BoltBulletEnv:
         ax[2].set_ylabel('meters')
 
         ax[3].plot(t,self.act_dcom[:,0], label = 'vx')
+        ax[3].plot(t,self.des_dcom[:,0], label = 'des_vx')
         ax[3].grid()
         ax[3].legend()
         ax[3].set_ylabel('meters/second')
 
         ax[4].plot(t,self.act_dcom[:,1], label = 'vy')
+        ax[4].plot(t,self.des_dcom[:,1], label = 'des_vy')
         ax[4].grid()
         ax[4].legend()
         ax[4].set_ylabel('meters/second')
