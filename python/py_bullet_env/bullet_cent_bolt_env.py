@@ -170,14 +170,19 @@ class BulletCentBoltEnv:
     def generate_foot_traj(self, q, dq, fl_foot, fr_foot, n, u_t, t, des_com, des_dcom):
         '''
         This function returs the desired location of the foot for the 
-        given time step
+        given time stepself.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
         '''
 
-        x_des = 2*[0.0, 0.0, 0]
-        xd_des = 2*[0.0, 0.0, 0]
-        q, dq = self.robot.get_state()
+        x_des = 2*[0.0,self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
+        xd_des = 2*[0.0self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
+        q, dq = self.roself.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))te()
             
-        fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
+        fl_hip, fr_hip self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))return_hip_locations(q, dq)
         
         if np.power(-1, n) < 0: ## fr reaches the ground
             via_point = self.f_lift + u_t[2]
@@ -256,10 +261,14 @@ class BulletCentBoltEnv:
         return x_des, xd_des, cnt_array
 
     def apply_force(self, F):
-        '''
-        This function applies a force to the base of the robot
-        Input:
-            F : force to apply 3d
+        '''self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
+        Thiself.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7])) the base of the robot
+        Inpself.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
+           self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
             
         '''
         pos, ori = p.getBasePositionAndOrientation(self.robot.robotId)

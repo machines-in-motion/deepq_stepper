@@ -71,7 +71,7 @@ class BoltBulletEnv:
 
         # Trajectory Generator initialisation
         self.trj = TrajGenerator(self.robot.pin_robot)
-        self.f_lift = 0.05 ## height the foot lifts of the ground
+        self.f_lift = 0.06 ## height the foot lifts of the ground
         
         # State estimation initialisation
         self.sse = BoltStateEstimator(self.robot.pin_robot)
@@ -80,6 +80,11 @@ class BoltBulletEnv:
         self.delta = 0.01
         self.max_acc = 8
         self.ip = IPMotionPlanner(self.delta, self.max_acc)
+
+        ## arrays to store data
+        self.act_com = []
+        self.act_dcom = []
+        self.des_dcom = []
 
     def get_com_state(self, q, dq):
         '''
@@ -206,7 +211,10 @@ class BoltBulletEnv:
             time.sleep(0.001)
             self.apply_force(force)
             q, dq = self.robot.get_state()
-            
+            self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
+            self.act_dcom.append(np.reshape(np.array(dq[0:3]), (3,)))
+            self.des_dcom.append(des_vel[0:2])
+
             x_des, xd_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, \
                             self.n, u_t, self.dt*t, self.stance_time, des_z[t] - self.base_offset, des_zd[t])
             
@@ -235,4 +243,48 @@ class BoltBulletEnv:
     def stop_recording(self):
         self.robot.stop_recording()
 
-    
+    def plot(self):
+        
+        self.act_com = np.asarray(self.act_com)
+        self.act_dcom = np.asarray(self.act_dcom)
+        self.des_dcom = np.asarray(self.des_dcom)
+
+        
+        
+        T = len(self.act_com[:,0])
+        t = 0.001*np.arange(0,T)
+
+        fig, ax = plt.subplots(6,1)
+        ax[0].plot(t,self.act_com[:,0], label = 'cx')
+        ax[0].grid()
+        ax[0].legend()
+        ax[0].set_ylabel('meters')
+
+        ax[1].plot(t,self.act_com[:,1], label = 'cy')
+        ax[1].grid()
+        ax[1].legend()
+        ax[1].set_ylabel('meters')
+
+        ax[2].plot(t,self.act_com[:,2], label = 'cz')
+        ax[2].grid()
+        ax[2].legend()
+        ax[2].set_ylabel('meters')
+
+        ax[3].plot(t,self.act_dcom[:,0], label = 'vx')
+        ax[3].plot(t,self.des_dcom[:,0], label = 'des_vx')
+        ax[3].grid()
+        ax[3].legend()
+        ax[3].set_ylabel('meters/second')
+
+        ax[4].plot(t,self.act_dcom[:,1], label = 'vy')
+        ax[4].plot(t,self.des_dcom[:,1], label = 'des_vy')
+        ax[4].grid()
+        ax[4].legend()
+        ax[4].set_ylabel('meters/second')
+
+        ax[5].plot(t,self.act_dcom[:,2], label = 'vz')
+        ax[5].grid()
+        ax[5].legend()
+        ax[5].set_ylabel('meters/second')
+
+        plt.show()
