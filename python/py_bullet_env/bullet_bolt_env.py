@@ -61,6 +61,8 @@ class BoltBulletEnv:
         # Impedance controller iniitialization
         self.bolt_leg_ctrl = BoltImpedanceController(self.robot)
 
+        self.b = 0.13
+
         # Centroidal controller initialisation
         assert np.shape(kp) == (3,)
         assert np.shape(kd) == (3,) 
@@ -334,7 +336,7 @@ class BoltBulletEnv:
             cost = self.w[0]*(abs(fl_hip[0] - u[0]) + abs(fl_hip[1] - u[1]))
 
         cost += self.w[1]*(abs(v_des[0] - dcom[0]) + abs(v_des[1] - dcom[1]))
-        cost += self.w[2]*(abs(u[0] - u_old[0]) + abs(u[1] - u_old[1]) + abs(u[2] - u_old[2]))
+        cost += self.w[2]*(abs(u[0] - u_old[0]) + abs(abs(u[1] - u_old[1]) - self.b) + abs(u[2] - u_old[2]))
 
         if done:
             cost += 100

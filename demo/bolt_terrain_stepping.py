@@ -78,7 +78,7 @@ for i in range(no_steps):
     u_y = n*env.action_space_y[int(action[1])] + u[1]
     u_z = action[2] + u[2]
     # print(np.round(u_z,2))
-    x, xd, u_new, n = bolt_env.step_env([u_x, u_y, u_z], des_vel, F)
+    x, xd, u_new, n, cost, done = bolt_env.step_env([u_x, u_y, u_z], des_vel, F)
     xd_arr.append(xd[0])
     u = u_new
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, des_vel[0], des_vel[1]]
