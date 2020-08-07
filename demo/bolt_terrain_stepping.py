@@ -3,7 +3,7 @@
 ## Author : Avadesh Meduri
 
 import numpy as np
-from py_deepq_stepper.dq_stepper import DQStepper, InvertedPendulumEnv
+from py_bullet_deepq_stepper.dq_stepper import DQStepper, InvertedPendulumEnv
 from py_bullet_env.bullet_bolt_env import BoltBulletEnv
 from py_bullet_env.bullet_env_handler import TerrainHandler
 
@@ -30,7 +30,7 @@ no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model='../models/bolt/dqs_3')        
+    no_actions= no_actions, trained_model='../models/bolt/lipm_walking/dqs_3')        
 ###################################################################
 F = [0, 0, 0]
 w = 0.0

@@ -21,7 +21,7 @@ from py_blmc_controllers.bolt_centroidal_controller import BoltCentroidalControl
 from py_utils.trajectory_generator import TrajGenerator
 from py_utils.bolt_state_estimator import BoltStateEstimator
 
-from py_deepq_stepper.motion_planner import IPMotionPlanner
+from py_motion_planner.ip_motion_planner import IPMotionPlanner
 
 from pinocchio.utils import zero
 
@@ -122,7 +122,7 @@ class BoltBulletEnv:
         Input:
             quat : quaternion to be converted
         '''
-        M = se3.XYZQUATToSe3(quat).rotation
+        M = se3.XYZQUATToSE3(quat).rotation
         m = sqrt(M[2, 1] ** 2 + M[2, 2] ** 2)
         p = atan2(-M[2, 0], m)
 
@@ -258,7 +258,7 @@ class BoltBulletEnv:
         
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
-            time.sleep(0.001)
+            # time.sleep(0.001)
             self.apply_force(force)
             q, dq = self.robot.get_state()
 

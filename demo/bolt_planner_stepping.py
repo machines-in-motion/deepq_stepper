@@ -3,7 +3,7 @@
 ## Author : Avadesh Meduri
 
 import numpy as np
-from py_deepq_stepper.twod_dq_stepper import TwoDQStepper, TwoDLipmEnv
+from py_bullet_deepq_stepper.twod_dq_stepper import TwoDQStepper, TwoDLipmEnv
 from py_bullet_env.bullet_bolt_env import BoltBulletEnv
 from py_bullet_env.bullet_env_handler import TerrainHandler
 #####################################################################

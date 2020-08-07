@@ -4,7 +4,7 @@
 
 import numpy as np
 from py_bullet_env.bullet_cent_bolt_env import BulletCentBoltEnv
-from py_deepq_stepper.cent_dq_stepper import CentEnv, DQStepper
+from py_bullet_deepq_stepper.cent_dq_stepper import CentEnv, DQStepper
 #####################################################################
 kp = [0, 0, 25]
 kd = [0, 0, 10]
@@ -24,9 +24,9 @@ actions = [11, 11]
 max_step_length = [0.5, 0.5]
 
 env_x = CentEnv(ht, 0., max_step_length[0], [0.5, 3.0, 1.5], [actions[0],1])
-dqs_x = DQStepper(env_x, lr=1e-4, gamma=0.98, use_tarnet= True, trained_model='../models/dqs_2_str')
+dqs_x = DQStepper(env_x, lr=1e-4, gamma=0.98, use_tarnet= True, trained_model='../models/bolt/cent_running/dqs_2_str')
 env_y = CentEnv(ht, b, max_step_length[1], [0.5, 3.0, 1.5], [1,actions[1]])
-dqs_y = DQStepper(env_y, lr=1e-4, gamma=0.98, use_tarnet= True, trained_model='../models/dqs_2_side')
+dqs_y = DQStepper(env_y, lr=1e-4, gamma=0.98, use_tarnet= True, trained_model='../models/bolt/cent_running/dqs_2_side')
 print(env_x.action_space_x)
 print(env_y.action_space_y)
 

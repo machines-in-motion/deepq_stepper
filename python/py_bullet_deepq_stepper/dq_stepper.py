@@ -1,11 +1,51 @@
+## This file contains all functions to train and test 3d deepQ stepper in a bullet env
+## Author : Avadesh Meduri
+## Date : 5/06/2020
+
 import numpy as np
 import random
+
+from matplotlib import pyplot as plt
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from py_deepq_stepper.motion_planner import IPMotionPlanner
+from py_motion_planner.ip_motion_planner import IPMotionPlanner
+
+class Buffer:
+    def __init__(self, buffer_size):
+        
+        self.buffer_size = buffer_size
+        self.buffer = np.zeros((1, 8 + 3 + 1 + 8)) ## should be made variables
+        
+    def size(self):
+        
+        return len(self.buffer)
+    
+    def store(self, state, action, reward, next_state, done):
+        ## stores new data in the buffer
+        new_data = 9999*np.ones((1, 8 + 3 + 1 + 8))
+        new_data[0, 0:8] = state
+        new_data[0, 8:12] = [action[0], action[1], action[2], reward]
+        if not done:
+            new_data[0, 12:] = next_state 
+        else:
+            new_data[0, 12:] = [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]
+        self.buffer = np.concatenate((self.buffer, np.around(new_data, 2)), axis = 0)
+        
+        #removes the first element if it is zero.
+        if np.all(self.buffer[0] == 0):
+            self.buffer = self.buffer[1:]
+            
+        # removes first element if the desired buffer size is obtained
+        elif self.size() > self.buffer_size:
+            self.buffer = self.buffer[1:]
+            
+    def sample(self, batch_size):
+        # returns a random mini batch of desired batch size
+        return np.asarray(random.sample(list(self.buffer), batch_size))
+
 
 class NN(nn.Module):
     def __init__(self, inp_size, out_size):
@@ -139,7 +179,23 @@ class DQStepper:
             action_z = self.x_in[action_index,10]
             
         return q_values, [action_x, action_y, action_z] 
-
+    
+    def live_plot(self, history, e, figsize=(15,25), window = 500, title='history'):
+        fig, ax = plt.subplots(3, 1, figsize=figsize)
+        ax[0].plot(history['epi_cost'], label='epi_cost', color = 'orange')
+        ax[0].grid(True)
+        ax[0].legend() 
+        if e > window:
+            ax[1].plot(np.arange(e-window+1, e), history['epi_cost'][e-window:], label='epi_cost zoom')
+            ax[1].grid(True)
+            ax[1].legend() 
+        ax[2].plot(history['loss'], label='loss', color = 'black')
+        ax[2].grid(True)
+        ax[2].legend() 
+        ax[2].set_ylim(0, 60)
+        plt.xlabel('episode')
+        plt.savefig('../../results_paper/dqs_1.png')
+        plt.close()
 '''
 This is an implementation of the inverted pendulum environment to train a 3d dq stepper
 '''
