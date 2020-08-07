@@ -15,12 +15,12 @@ kd_ang_com = [0, 0, 0]
 
 step_time = 0.1
 air_time = 0.1
-ht = 0.3
+ht = 0.26
 
 bolt_env = BulletCentBoltEnv(ht, step_time, air_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com)
 ###################################################################
 b = 0.13
-actions = [11, 9]
+actions = [11, 11]
 max_step_length = [0.5, 0.5]
 
 env_x = CentEnv(ht, 0., max_step_length[0], [0.5, 3.0, 1.5], [actions[0],1])
@@ -28,12 +28,14 @@ dqs_x = DQStepper(env_x, lr=1e-4, gamma=0.98, use_tarnet= True, trained_model='.
 env_y = CentEnv(ht, b, max_step_length[1], [0.5, 3.0, 1.5], [1,actions[1]])
 dqs_y = DQStepper(env_y, lr=1e-4, gamma=0.98, use_tarnet= True, trained_model='../models/dqs_2_side')
 print(env_x.action_space_x)
+print(env_y.action_space_y)
+
 ###################################################################
 F = [0, 0, 0]
 w = 0.0
-no_steps = 15
+no_steps = 4
 des_com = [0.0, 0, ht]
-des_vel = [-0.0, 0.0, 0]
+des_vel = [0.0, 0.0, 0]
 x_ori = [0, 0, 0, 1]
 x_angvel = [0, 0, 0]
 
@@ -41,11 +43,9 @@ x, u, n = bolt_env.reset_env()
 state = np.around([x[0] - u[0], x[1] - u[1], x[2] - u[2], x[3], x[4], n, des_vel[0], des_vel[1]],2)
 # bolt_env.update_gains([30, 30, 35], [1.0, 1.0, 1], [0, 0, 20], [0, 0, 2], [10, 10, 0], [1, 1, 0]) # dqs_2
 
-<<<<<<< HEAD
-bolt_env.update_gains([50, 50, 45], [2.0, 2.0, 2.0], [0, 0, 30], [0, 0, 2], [10, 10, 0], [1, 1, 0]) # dqs_1
-=======
-bolt_env.update_gains([50, 50, 50], [2.5, 2.5, 2.5], [0, 0, 30], [0, 0, 2], [10, 10, 0], [1, 1, 0]) # dqs_1
->>>>>>> 9a3229aaf65fc3de5534fc6984df6174694a10d8
+bolt_env.update_gains([100, 100, 100], [5.0, 5., 5], [0, 0, 100], [0, 0, 5], [100, 100, 0], [100, 100, 0]) # dqs_2
+
+
 # bolt_env.start_recording("prel_running.mp4")
 
 for i in range(no_steps):
@@ -65,9 +65,6 @@ for i in range(no_steps):
     action_y = dqs_y.predict_q(state_y, terrain)[1] 
     action = np.array([int(action_x[0]), int(action_y[1]), 0])
     
-    if action[1] > 6:
-        action[1] = 6
-
     u_x = u[0] + env_x.action_space_x[action[0]]
     u_y = u[1] + n*env_y.action_space_y[action[1]]
     u_z = u[2] + action[2]
@@ -80,6 +77,6 @@ for i in range(no_steps):
     u = u_new
     state = np.around([x[0] - u[0], x[1] - u[1], x[2] - u[2], x[3], x[4], n, des_vel[0], des_vel[1]], 2)
 
-# bolt_env.plot()
+bolt_env.plot()
 
 # bolt_env.stop_recording()

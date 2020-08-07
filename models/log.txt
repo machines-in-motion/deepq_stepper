@@ -1,0 +1,3 @@
+1) dqs_2_str, side are for running with ht = 0.28. 9 layers 512 each. Max step length = 0.5,
+	no of discritization = [11,9], b = 0.13. Note : state init has -0.035 offset
+2) dqs 1_str, side are same as above excpet for ht = 0.24

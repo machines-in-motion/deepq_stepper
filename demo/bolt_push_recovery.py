@@ -21,7 +21,7 @@ step_time = 0.1
 stance_time = 0.03
 ht = 0.28
 
-terrain_dir = "/home/ameduri/py_devel/workspace/src/catkin/deepq_stepper/python/py_bullet_env/terrains/push.urdf"
+terrain_dir = "../python/py_bullet_env/terrains/push.urdf"
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com)
 bolt_env.load_terrain(terrain_dir)
 terr = TerrainHandler(terrain_dir)

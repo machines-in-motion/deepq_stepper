@@ -192,7 +192,8 @@ class CentEnv:
             # or the right to the right leg (no criss crossing)
             self.action_space_ry = np.linspace(0, b, int(3*no_actions[1]/9), endpoint = False)
             self.action_space_y = np.around(np.concatenate((self.action_space_ry, self.action_space_ly)), 2)
-        
+            # self.action_space_y = np.around(np.linspace(-max_step_length + b, max_step_length + b , no_actions[1]), 2)
+
         else:
             self.action_space_y = np.around(np.linspace(0, max_step_length/1.0, int(no_actions[1])), 2)
         

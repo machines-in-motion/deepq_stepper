@@ -93,6 +93,9 @@ class BulletCentBoltEnv:
         ## arrays to store data
 
         self.des_com = []
+        self.fff = []
+        self.des_foot = []
+        self.act_foot = []
         self.act_com = []
         self.act_ori = []
 
@@ -113,7 +116,7 @@ class BulletCentBoltEnv:
             y = atan2(M[1, 0], M[0, 0])  # alpha
             r = atan2(M[2, 1], M[2, 2])  # gamma
         
-        lst = [r,p,y]
+        lst = np.array([r,p,y])
 
         return lst
 
@@ -174,15 +177,13 @@ class BulletCentBoltEnv:
             self.act_ori.append(self.convert_quat_rpy(q[3:7]))
         '''
 
-        x_des = 2*[0.0,self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
-            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
-        xd_des = 2*[0.0self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
-            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
-        q, dq = self.roself.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
-            self.act_ori.append(self.convert_quat_rpy(q[3:7]))te()
+        x_des = 2*[0.0, 0.0, 0]
+        xd_des = 2*[0.0, 0.0, 0]
+        
+        q, dq = self.robot.get_state()
             
-        fl_hip, fr_hip self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
-            self.act_ori.append(self.convert_quat_rpy(q[3:7]))return_hip_locations(q, dq)
+        fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
+
         
         if np.power(-1, n) < 0: ## fr reaches the ground
             via_point = self.f_lift + u_t[2]
@@ -352,20 +353,22 @@ class BulletCentBoltEnv:
         
         for t in range(int((2*self.step_time+self.air_time)/self.dt)):
             p.stepSimulation()
-            time.sleep(0.0005)
+            time.sleep(0.01)
             if force:
                 self.apply_force(force)
 
             q, dq = self.robot.get_state()
 
             self.act_com.append(np.reshape(np.array(q[0:3]), (3,)))
-            self.act_ori.append(self.convert_quat_rpy(q[3:7]))
-
+            self.act_ori.append((180/np.pi)*self.convert_quat_rpy(q[3:7]))
+            self.fff.append(f[:,t])
+            self.act_foot.append(self.get_foot_state(q, dq)[0])
             x_des, xd_des, cnt_array = self.generate_foot_traj(q, dq, fl_foot, fr_foot, \
                             self.n, u_t, self.dt*t, des_com[:,t] - self.base_offset, des_dcom[:,t])
             
             w_com = self.centr_controller.compute_com_wrench(q, dq, des_com[:,t], des_dcom[:,t],[0, 0, 0, 1], [0, 0, 0])
             w_com[0:3] += f[:,t] # feed forward force
+            # w_com[2] += self.total_mass*9.81
             F = self.centr_controller.compute_force_qp(q, dq, cnt_array, w_com)
             tau = self.bolt_leg_ctrl.return_joint_torques(q,dq,self.kp,self.kd,x_des, xd_des,F)
 
@@ -395,6 +398,9 @@ class BulletCentBoltEnv:
         self.act_com = np.asarray(self.act_com)
         self.act_ori = np.asarray(self.act_ori)
         self.des_com = np.asarray(self.des_com)
+        self.fff = np.asarray(self.fff)
+        self.act_foot = np.asarray(self.act_foot)
+
         T = len(self.act_com[:,0])
         t = 0.001*np.arange(0,T)
 
@@ -436,5 +442,37 @@ class BulletCentBoltEnv:
         ax[5].legend()
         ax[5].set_ylabel('degree')
         ax[5].set_xlabel('sec')
+
+
+        fig, ax = plt.subplots(6,1)
+        ax[0].plot(t,self.fff[:,0], label = 'fx')
+        ax[0].grid()
+        ax[0].legend()
+        ax[0].set_ylabel('Newton')
+
+        ax[1].plot(t,self.fff[:,1], label = 'fy')
+        ax[1].grid()
+        ax[1].legend()
+        ax[1].set_ylabel('Newton')
+
+        ax[2].plot(t,self.fff[:,2], label = 'fz')
+        ax[2].grid()
+        ax[2].legend()
+        ax[2].set_ylabel('Newton')
+
+        ax[3].plot(t,self.act_foot[:,0], label = 'fl_x')
+        ax[3].grid()
+        ax[3].legend()
+        ax[3].set_ylabel('Meters')
+
+        ax[4].plot(t,self.act_foot[:,1], label = 'fl_y')
+        ax[4].grid()
+        ax[4].legend()
+        ax[4].set_ylabel('Meters')
+
+        ax[5].plot(t,self.act_foot[:,2], label = 'fl_z')
+        ax[5].grid()
+        ax[5].legend()
+        ax[5].set_ylabel('Meters')
 
         plt.show()
