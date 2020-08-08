@@ -22,8 +22,8 @@ F = [0, 0, 0]
 
 step_time = 0.1
 stance_time = 0.03
-ht = 0.28
-w = [0.0, 0, 1.0]
+ht = 0.26
+w = [1.5, 3, 0.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -35,7 +35,7 @@ print(no_actions)
 
 name = 'dqs_1'
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../../models/bolt/lipm_walking/dqs_3")
+    no_actions= no_actions, trained_model = None)
 
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
@@ -44,18 +44,17 @@ e = 1
 no_epi = 10000
 no_steps = 10
 
-buffer_size = 10000
+buffer_size = 5000
 buffer = Buffer(buffer_size)
 batch_size = 16
-epsillon = 0.25
+epsillon = 0.2
 
 ##################################################################
 history = {'loss':[], 'epi_cost':[]}
 while e < no_epi:
 
-    v_init = [2*(np.random.rand() - 0.5), 2*(np.random.rand() - 0.5)]
+    v_init = [3*(np.random.rand() - 0.5), 2*(np.random.rand() - 0.5)]
     v_des = [0.25*np.random.randint(-4, 5), 0.25*np.random.randint(-2, 3)]
-    v_des = [0, 0]
     x, xd, u, n = bolt_env.reset_env([0, 0, ht, v_init[0], v_init[1]])
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
     
@@ -79,8 +78,7 @@ while e < no_epi:
     epi_cost = 0
     for i in range(no_steps):
 
-        action = dqs.predict_q(state, terrain)[1]
-        # action = dqs.predict_eps_greedy(state, epsillon)
+        action = dqs.predict_eps_greedy(state, epsillon)
         u_x = env.action_space_x[int(action[0])] + u[0]
         u_y = n*env.action_space_y[int(action[1])] + u[1]
         u_z = action[2] + u[2]
@@ -90,7 +88,6 @@ while e < no_epi:
         buffer.store(state, action, cost, next_state, done)
         state = next_state
         u = u_new
-
         if buffer.size() == buffer_size:
             ## optimizing DQN
             loss = dqs.optimize(buffer.sample(batch_size)) 

@@ -180,7 +180,7 @@ class DQStepper:
             
         return q_values, [action_x, action_y, action_z] 
     
-    def live_plot(self, history, e, figsize=(15,25), window = 500, title='history'):
+    def live_plot(self, history, e, figsize=(15,25), window = 500, title='history', show = False):
         fig, ax = plt.subplots(3, 1, figsize=figsize)
         ax[0].plot(history['epi_cost'], label='epi_cost', color = 'orange')
         ax[0].grid(True)
@@ -194,8 +194,11 @@ class DQStepper:
         ax[2].legend() 
         ax[2].set_ylim(0, 60)
         plt.xlabel('episode')
-        plt.savefig('../../results_paper/dqs_1.png')
-        plt.close()
+        if show:
+            plt.show()
+        else:    
+            plt.savefig('../../results_paper/dqs_1.png')
+            plt.close()
 '''
 This is an implementation of the inverted pendulum environment to train a 3d dq stepper
 '''
