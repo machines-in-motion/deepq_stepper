@@ -26,7 +26,7 @@ F = [0, 0, 0]
 step_time = 0.1
 stance_time = 0.03
 ht = 0.26
-w = [1.5, 3, 0.5]
+w = [0.0, 1, 0.0]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -36,10 +36,10 @@ print(no_actions)
 
 ###################################################################
 
-dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
+dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model = "../models/bolt/lipm_walking/dqs_3")
 
-dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
+dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model = "../models/dqs_1")
 
 
@@ -47,21 +47,18 @@ dqs_arr = [dqs_1, dqs_2]
 dqs_ct = 0
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
-no_epi = 1
-no_steps = 20
+no_epi = 2
+no_steps = 10
 
 ##################################################################
 history = []
 
-for i in range(len(dqs_arr)):
-    dqs = dqs_arr[i]
+for dqs in dqs_arr:
     history.append([])
     for e in range(no_epi):
 
-        v_init = [3*(np.random.rand() - 0.5), 2*(np.random.rand() - 0.5)]
+        v_init = [2*(np.random.rand() - 0.5), 2*(np.random.rand() - 0.5)]
         v_des = [0.25*np.random.randint(-2, 3), 0.25*np.random.randint(-2, 3)]
-        v_init = [-0.5, 0.0]
-        v_des = [0.5, 0]
         x, xd, u, n = bolt_env.reset_env([0, 0, ht, v_init[0], v_init[1]])
         state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
                 
@@ -87,10 +84,8 @@ for i in range(len(dqs_arr)):
     
     dqs_ct += 1
 
-plt.plot(history[0], label = 'dqs_1')
-plt.plot(history[1], label = 'dqs_2')
-plt.legend()
-plt.grid()
+plt.plot(history[0])
+plt.plot(history[1])
 plt.show()
 
 

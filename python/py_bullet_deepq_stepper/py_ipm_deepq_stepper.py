@@ -12,18 +12,20 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-kp = [100, 100, 150]
-kd = [15, 15, 15]
-kp_com = [0, 0, 150]
-kd_com = [0, 0, 10]
+kp = [80, 80, 80]
+kd = [12, 12, 12]
+kp_com = [0, 0, 80.0]
+kd_com = [0, 0, 12.0]
 kp_ang_com = [100, 100, 0]
-kd_ang_com = [20, 20, 0]
+kd_ang_com = [25, 25, 0]
+
 F = [0, 0, 0]
 
 step_time = 0.1
-stance_time = 0.03
+stance_time = 0.02
 ht = 0.26
-w = [1.5, 3, 0.5]
+off = 0.0
+w = [0.5, 3, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -44,7 +46,7 @@ e = 1
 no_epi = 10000
 no_steps = 10
 
-buffer_size = 5000
+buffer_size = 10000
 buffer = Buffer(buffer_size)
 batch_size = 16
 epsillon = 0.2
@@ -54,8 +56,8 @@ history = {'loss':[], 'epi_cost':[]}
 while e < no_epi:
 
     v_init = [3*(np.random.rand() - 0.5), 2*(np.random.rand() - 0.5)]
-    v_des = [0.25*np.random.randint(-4, 5), 0.25*np.random.randint(-2, 3)]
-    x, xd, u, n = bolt_env.reset_env([0, 0, ht, v_init[0], v_init[1]])
+    v_des = [0.5*np.random.randint(-2, 3), 0.5*np.random.randint(-1, 2)]
+    x, xd, u, n = bolt_env.reset_env([0, 0, ht + off, v_init[0], v_init[1]])
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
     
     if e % 500 == 0 and e > 10:

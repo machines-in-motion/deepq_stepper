@@ -57,7 +57,6 @@ class BoltBulletEnv:
         # This is the distance of the hip from the true COM
         # This is subtracted as in the training the COM is assumed to be
         # at the hip joint with no offset 
-        self.base_offset = 0.043 #check urdf for value
         # Impedance controller iniitialization
         self.bolt_leg_ctrl = BoltImpedanceController(self.robot)
 
@@ -187,9 +186,10 @@ class BoltBulletEnv:
 
         x_des = 2*[0.0, 0.0, 0]
         xd_des = 2*[0.0, 0.0, 0]
-        q, dq = self.robot.get_state()
-            
+        com, dcom = self.get_com_state(q, dq)
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
+        
+        des_z -= com[2] - 0.5*(fl_hip[2] + fr_hip[2])
         
         if t < self.step_time - stance_time:
             if np.power(-1, n) < 0: ## fr leave the ground
@@ -197,7 +197,7 @@ class BoltBulletEnv:
                 via_point = self.f_lift + u_t[2]
                 u_t_des = [[fl_foot[0], fl_foot[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
                 x_des[0:3] = np.subtract(u_t_des[0], [fl_hip[0], fl_hip[1], des_z])
-                xd_des[3] = des_zd
+                # xd_des[0:3] = [com[0], com[1], des_zd]
                 x_des[3:6], xd_des[3:6] = self.trj.generate_foot_traj([fr_foot[0], fr_foot[1],fr_foot[2]], u_t_des[1], [0.0, 0.0, via_point], self.step_time - stance_time,t)
                 x_des[3:6] = np.subtract(x_des[3:6], [fr_hip[0], fr_hip[1], des_z])
                 
@@ -208,14 +208,20 @@ class BoltBulletEnv:
                 x_des[0:3], xd_des[0:3] = self.trj.generate_foot_traj([fl_foot[0], fl_foot[1],fl_foot[2]], u_t_des[0], [0.0, 0.0, via_point], self.step_time - stance_time,t)
                 x_des[0:3] = np.subtract(x_des[0:3], [fl_hip[0], fl_hip[1], des_z])
                 x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_z])
-                xd_des[5] = des_zd
+                # xd_des[3:6] = [com[0], com[1], des_zd]
+
         else:
             cnt_array = [1, 1]
-            u_t_des = [[fl_foot[0], fl_foot[1], fl_foot[2]], [fr_foot[0], fr_foot[1], fr_foot[2]]]
+            if np.power(-1, n) < 0:
+                u_t_des = [[fl_foot[0], fl_foot[1], fl_foot[2]], [u_t[0], u_t[1], u_t[2]]]
+            if np.power(-1, n) > 0:
+                u_t_des = [[u_t[0], u_t[1], u_t[2]], [fr_foot[0], fr_foot[1], fr_foot[2]]]
+            
             x_des[0:3] = np.subtract(u_t_des[0], [fl_hip[0], fl_hip[1], des_z])
             x_des[3:6] = np.subtract(u_t_des[1], [fr_hip[0], fr_hip[1], des_z])
-            xd_des[2] = des_zd
-            xd_des[5] = des_zd
+            # xd_des[0:3] = [com[0], com[1], 0]
+            # xd_des[3:6] = [com[0], com[1],0]
+
 
         self.des_leg_length.append(x_des[2])
         return x_des, xd_des, cnt_array
@@ -231,15 +237,6 @@ class BoltBulletEnv:
         p.applyExternalForce(objectUniqueId=self.robot.robotId, linkIndex=-1,
                         forceObj=F, posObj=pos, flags=p.WORLD_FRAME)
 
-    def load_terrain(self, dir):
-        '''
-        This function loads terrain in the simulation
-        Input:
-            dir : path to urdf
-        '''
-        terrain = (dir)
-        terrain_id = p.loadURDF(terrain)
-
     def step_env(self, action, des_vel, force = None):
         '''
         This function simulates the environment for step time duration
@@ -254,13 +251,12 @@ class BoltBulletEnv:
         des_z = np.repeat(des_z, self.delta/self.dt)
         des_zd = np.repeat(des_zd, self.delta/self.dt)
         self.des_com.append(des_z[:int(self.step_time/self.dt)])
-
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         u_t = action
         
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
-            time.sleep(0.001)
+            # time.sleep(0.001)
             self.apply_force(force)
             q, dq = self.robot.get_state()
 
@@ -269,12 +265,12 @@ class BoltBulletEnv:
             self.des_dcom.append(des_vel[0:2])
 
             x_des, xd_des, cnt_array = self.generate_traj(q, dq, fl_foot, fr_foot, \
-                            self.n, u_t, self.dt*t, self.stance_time, des_z[t] - self.base_offset - self.foot_size, des_zd[t])
+                            self.n, u_t, self.dt*t, self.stance_time, des_z[t] - self.foot_size, des_zd[t])
             
             des_com = [0, 0, des_z[t]]
             des_vel = [des_vel[0], des_vel[1], des_zd[t]]
             w_com = self.centr_controller.compute_com_wrench(q, dq, des_com, des_vel,[0, 0, 0, 1], [0, 0, 0])
-            w_com[2] += self.total_mass * 9.81
+            w_com[2] += 0.85*self.total_mass * 9.81
             F = self.centr_controller.compute_force_qp(q, dq, cnt_array, w_com)
             tau = self.bolt_leg_ctrl.return_joint_torques(q,dq,self.kp,self.kd,x_des, xd_des,F)
             self.robot.send_joint_command(tau)
@@ -288,7 +284,6 @@ class BoltBulletEnv:
         com, dcom = self.get_com_state(q, dq)
         fl_foot, fr_foot = self.get_foot_state(q, dq) ## computing current location of the feet
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
-
         if np.power(-1, self.n) < 0:
             cost = self.compute_cost(com, dcom, fl_hip, fr_hip, self.n, fr_foot, self.u, des_vel, done)
             self.u = fr_foot
@@ -314,11 +309,14 @@ class BoltBulletEnv:
         elif np.linalg.norm(dcom,2) > 2:
             # print('vel')
             return True
-        elif ori[0] > 20 or ori[1] > 20 or ori[2] > 10:
+        elif ori[0] > 30 or ori[1] > 30 or ori[2] > 20:
             # print('ori')
             return True
         elif np.linalg.norm(fl_foot - fl_hip) > 0.31 or np.linalg.norm(fr_foot - fr_hip) > 0.31:
             # print('leg', np.linalg.norm(fl_foot - fl_hip), np.linalg.norm(fr_foot - fr_hip))
+            return True
+        elif np.linalg.norm(fl_foot - fr_foot) < 0.02:
+            # print('foot collision')
             return True
         else:
             return False
