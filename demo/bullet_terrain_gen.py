@@ -14,25 +14,27 @@ from py_bullet_env.bullet_bolt_env import BoltBulletEnv
 
 import time
 from matplotlib import pyplot as plt
+import random
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-kp = [80, 80, 80]
-kd = [12, 12, 12]
-kp_com = [0, 0, 80.0]
-kd_com = [0, 0, 12.0]
+kp = [150, 150, 150]
+kd = [15, 15, 15]
+kp_com = [0, 0, 150.0]
+kd_com = [0, 0, 20.0]
 kp_ang_com = [100, 100, 0]
 kd_ang_com = [25, 25, 0]
+
 F = [0, 0, 0]
 
 step_time = 0.1
 stance_time = 0.02
-ht = 0.26
+ht = 0.28
 off = 0.0
-w = [0.0, 0, 1.0]
+w = [0.0, 1, 0.0]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -43,7 +45,7 @@ print(no_actions)
 ###################################################################
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_1")
+    no_actions= no_actions, trained_model = "../models/dqs_2")
 
 ##################################################################
 
@@ -73,16 +75,14 @@ terr = TerrainHandler(bolt_env.robot.robotId)
 
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
-no_steps = 20
-v_init = [0, 0]
-v_des = [0.0, 0]
-
+no_steps = 50
+v_init = [0.0, 0]
+v_des = [-0.5, 0]
 ##################################################################
 
 
 x, xd, u, n = bolt_env.reset_env([0, 0, ht + off, v_init[0], v_init[1]])
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
-        
 epi_cost = 0
 for i in range(no_steps):
 
@@ -120,7 +120,7 @@ for i in range(no_steps):
         print('terminated ..')
         break
     
-
+print('episode cost is : ' + str(epi_cost))
 # bolt_env.plot()
 
 

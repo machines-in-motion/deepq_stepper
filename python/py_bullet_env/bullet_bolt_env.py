@@ -60,8 +60,6 @@ class BoltBulletEnv:
         # Impedance controller iniitialization
         self.bolt_leg_ctrl = BoltImpedanceController(self.robot)
 
-        self.b = 0.13
-
         # Centroidal controller initialisation
         assert np.shape(kp) == (3,)
         assert np.shape(kd) == (3,) 
@@ -159,18 +157,15 @@ class BoltBulletEnv:
             dq0[0:2] = np.array([state[3:5]]).T
         
         self.robot.reset_state(q0, dq0)
-
-        self.xd_des = 2*[0,0,0]
-        
-        self.x_ori = [0., 0., 0., 1.]
-        self.x_angvel = [0., 0., 0.]
-        
+            
         q, dq = self.robot.get_state()
         fl_foot, fr_foot = self.get_foot_state(q, dq)
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
         com, dcom = self.get_com_state(q, dq)
+        assert dcom[0] == state[3]
         
-        self.b = fl_hip[1] - fr_hip[1]
+        
+        self.b = np.round(fl_hip[1] - fr_hip[1], 2)
         self.n = 1 #right leg on the ground
         self.t = 0
 
@@ -189,6 +184,7 @@ class BoltBulletEnv:
         com, dcom = self.get_com_state(q, dq)
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
         
+        # offseting by the distance between com and hip
         des_z -= com[2] - 0.5*(fl_hip[2] + fr_hip[2])
         
         if t < self.step_time - stance_time:
@@ -256,7 +252,7 @@ class BoltBulletEnv:
         
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
-            # time.sleep(0.001)
+            time.sleep(0.001)
             self.apply_force(force)
             q, dq = self.robot.get_state()
 
