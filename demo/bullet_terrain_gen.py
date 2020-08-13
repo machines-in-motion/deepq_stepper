@@ -33,7 +33,7 @@ F = [0, 0, 0]
 step_time = 0.1
 stance_time = 0.02
 ht = 0.28
-off = 0.0
+off = 0.04
 w = [0.0, 1, 0.0]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
@@ -45,11 +45,13 @@ print(no_actions)
 ###################################################################
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_2")
+    no_actions= no_actions, trained_model = "../models/dqs_3")
 
 ##################################################################
 
 terr_gen = TerrainGenerator('/home/ameduri/py_devel/workspace/src/catkin/deepq_stepper/python/py_bullet_env/shapes')
+
+terr_gen.create_random_terrain(10, 0.4)
 
 # terr_gen.create_box([0.0, 0.1, 0.0], [0.0, 0, 0 ,-1], '4cm')
 # terr_gen.create_box([0.0, -0.1, 0.0], [0.0, 0, 0 ,-1] ,'4cm')
@@ -75,9 +77,9 @@ terr = TerrainHandler(bolt_env.robot.robotId)
 
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
-no_steps = 50
+no_steps = 20
 v_init = [0.0, 0]
-v_des = [-0.5, 0]
+v_des = [0.0, 0]
 ##################################################################
 
 

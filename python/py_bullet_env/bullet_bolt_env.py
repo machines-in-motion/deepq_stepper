@@ -74,7 +74,7 @@ class BoltBulletEnv:
 
         # Trajectory Generator initialisation
         self.trj = TrajGenerator(self.robot.pin_robot)
-        self.f_lift = 0.06 ## height the foot lifts of the ground
+        self.f_lift = 0.07 ## height the foot lifts of the ground
         
         # State estimation initialisation
         self.sse = BoltStateEstimator(self.robot.pin_robot)
