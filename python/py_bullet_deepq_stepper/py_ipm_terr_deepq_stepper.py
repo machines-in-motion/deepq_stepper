@@ -1,4 +1,4 @@
-## This file is to train an existing trained stepper on terrain
+## This file trains the dq stepper in bullet environment with terrain (3d)
 ## Author : Avadesh Meduri
 ## Date : 12/08/2020
 
@@ -27,8 +27,8 @@ F = [0, 0, 0]
 step_time = 0.1
 stance_time = 0.02
 ht = 0.28
-off = 0.04
-w = [0.5, 3, 1.5]
+off = 0.0
+w = [0.5, 3.5, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -40,16 +40,17 @@ print(no_actions)
 
 name = 'dqs_1'
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model='../../models/dqs_3')
+    no_actions= no_actions)
 
 ###################################################################
 e = 1
 no_epi = 15000
-no_steps = 20
+no_steps = 10
 
-buffer_size = 2000
+buffer_size = 7000
 buffer = Buffer(buffer_size)
 batch_size = 16
+epsillon = 0.2
 
 ##################################################################
 terr_gen = TerrainGenerator('/home/ameduri/py_devel/workspace/src/catkin/deepq_stepper/python/py_bullet_env/shapes')
@@ -57,7 +58,7 @@ terr_gen = TerrainGenerator('/home/ameduri/py_devel/workspace/src/catkin/deepq_s
 max_length = 1.0
 
 terr = TerrainHandler(bolt_env.robot.robotId)
-terr_gen.create_random_terrain(100, max_length)
+terr_gen.create_random_terrain(40, max_length)
 
 ##################################################################
 history = {'loss':[], 'epi_cost':[]}
@@ -65,14 +66,14 @@ while e < no_epi:
 
     v_init = np.round([random.uniform(-1., 1.), random.uniform(-1, 1)], 2)
     v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
-    x_init = 0.5*np.round([random.uniform(-max_length, max_length), random.uniform(-max_length, max_length)], 2)
+    x_init = 0.8*np.round([random.uniform(-max_length, max_length), random.uniform(-max_length, max_length)], 2)
     x, xd, u, n = bolt_env.reset_env([x_init[0], x_init[1], ht + off, v_init[0], v_init[1]])
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
-    if e % 250 == 0 and e > 10:
+    if e % 500 == 0 and e > 10:
         # print('saving model ...')
         torch.save(dqs.dq_stepper.state_dict(), "../../models/" + name)
         dqs.live_plot(history, e)
-        terr_gen.create_random_terrain(10, max_length)
+        terr_gen.create_random_terrain(3, max_length)
 
         #reducing epsillon
         if e%1000 == 0 and e > 5000:
@@ -91,19 +92,28 @@ while e < no_epi:
     for i in range(no_steps):
 
         terrain = dqs.x_in[:,8:].copy()
-        for i in range(len(dqs.x_in)):
-            u_x = env.action_space_x[int(dqs.x_in[i,8])] + u[0]
-            u_y = n*env.action_space_y[int(dqs.x_in[i,9])] + u[1]
+        if random.uniform(0, 1) > epsillon:
+            for i in range(len(dqs.x_in)):
+                u_x = env.action_space_x[int(dqs.x_in[i,8])] + u[0]
+                u_y = n*env.action_space_y[int(dqs.x_in[i,9])] + u[1]
+                u_z = terr.return_terrain_height(u_x, u_y)
+                terrain[i,2] = np.around(u_z - u[2], 2)
+
+            q_values, _ = dqs.predict_q(state, terrain[:,2])
+            action_index = np.argmin(q_values)
+            action = terrain[action_index]
+
+        else:
+            action = [random.randint(0, no_actions[0] - 1), random.randint(0, no_actions[1] - 1), 0.0]
+            u_x = env.action_space_x[action[0]] + u[0]
+            u_y = n*env.action_space_y[action[1]] + u[1]
             u_z = terr.return_terrain_height(u_x, u_y)
-            terrain[i,2] = np.around(u_z - u[2], 2)
-
-        q_values, _ = dqs.predict_q(state, terrain[:,2])
-        action_index = np.argmin(q_values)
-        action = terrain[action_index]
-
+            action[2] = np.around(u_z - u[2], 2)
+            
         u_x = env.action_space_x[int(action[0])] + u[0]
         u_y = n*env.action_space_y[int(action[1])] + u[1]
         u_z = action[2] + u[2]
+            
         x, xd, u_new, n, cost, done = bolt_env.step_env([u_x, u_y, u_z], v_des, F)
         next_state = np.round([x[0] - u_new[0], x[1] - u_new[1], x[2] - u_new[2], xd[0], xd[1], n, v_des[0], v_des[1]], 2)
         buffer.store(state, action, cost, next_state, done)

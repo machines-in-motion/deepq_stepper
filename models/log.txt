@@ -1,0 +1,20 @@
+1) dqs_3 : works well. 8 layers ANN, [ 0.5, 3, 1.5 ] cost. All parameters are same as in the IPM case. trained with bullet env
+2) dqs_4 : works well. 8 layers ANN, [ 0.5, 3, 1.5 ] cost. All parameters are same as in the IPM case. trained with bullet env
+
+Both with 0.1 step time.
+Gains : 
+
+kp = [150, 150, 150]
+kd = [15, 15, 15]
+kp_com = [0, 0, 150.0]
+kd_com = [0, 0, 20.0]
+kp_ang_com = [100, 100, 0]
+kd_ang_com = [25, 25, 0]
+
+step_time = 0.1
+stance_time = 0.02
+ht = 0.28
+off = 0.0
+
+
+3) dqs_2 : trained for 3d stepping (Not so good for backward walking). Same paramters as 2d walking. (cost = [0.5, 3.5, 1.5])

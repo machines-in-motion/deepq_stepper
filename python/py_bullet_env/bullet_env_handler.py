@@ -147,7 +147,7 @@ class TerrainGenerator:
         '''
         
         for i in range(n):
-            if random.uniform(0,1) > 0.85:    
+            if random.uniform(0,1) > 0.9:    
                 box_size = self.box_arr[random.randint(0, len(self.box_arr)-1)][0:3]
                 x = random.uniform(-max_length, max_length)  
                 y = random.uniform(-max_length, max_length)
