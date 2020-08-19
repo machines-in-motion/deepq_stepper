@@ -2,7 +2,7 @@
 <robot name="sphere">
 <link name="sphere_link">
     <contact>
-      <lateral_friction value="25.0"/>
+      <lateral_friction value="0.5"/>
       <restitution value="0.0"/>
     </contact>
     <inertial>

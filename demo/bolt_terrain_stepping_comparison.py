@@ -34,7 +34,7 @@ step_time = 0.1
 stance_time = 0.02
 ht = 0.28
 off = 0.02
-w = [0.5, 3.0, 1.5]
+w = [0.5, 3.5, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -126,31 +126,14 @@ while e < no_epi:
 
 print('Bullet dqs win percentage : ' + str(np.sum(np.greater(history[0], history[1]))/no_epi))
 
-plt.title("Comparison: Episode cost for stepper trained in different environments")
+# plt.title("Comparison: Episode cost for stepper trained in different environments")
 # plt.title("Comparison: Episode cost for stepper trained for 2d and 3d, but tested in 3d")
-plt.plot(history[0], label = 'ipm_dqs')
+plt.plot(history[0], label = 'IPM Env')
 # plt.plot(history[0], label = 'bullet_2d_dqs')
-plt.plot(history[1], label = 'bullet_dqs')
-
+plt.plot(history[1], label = 'Bullet Env')
+plt.ylabel('Episode Cost')
+plt.xlabel('Episode Number')
 plt.legend()
 plt.grid()
 plt.show()
 
-
-
-#############
-
- # while True:
-            #     action_index = np.argmin(q_values)
-            #     if u[2] + terrain[action_index, 2] > 0.01:
-            #         action = terrain[action_index]
-            #         break
-            #     else:
-            #         del_u_x = env.action_space_x[int(terrain[action_index][0])] + u[0]
-            #         del_u_y = n*env.action_space_y[int(terrain[action_index][1])] + u[1]
-            #         del_u_z = terrain[action_index][2]
-            #         p.addUserDebugLine([del_u_x, del_u_y, del_u_z],[del_u_x, del_u_y, del_u_z + 0.5],[0,1,1], 3)
-            #         terrain = np.delete(terrain, action_index, 0)
-            
-            # p.removeAllUserDebugItems()
-            

@@ -10,7 +10,7 @@ from urdfpy import URDF
 
 class TerrainHandler:
 
-    def __init__(self, robotId, margin = 0.015):
+    def __init__(self, robotId, margin = 0.01):
         self.t = 0.01 # safety margin 
         self.robotId = robotId
         self.margin = margin
@@ -138,19 +138,23 @@ class TerrainGenerator:
 
         p.stepSimulation()
 
-    def create_random_terrain(self, n, max_length):
+    def create_random_terrain(self, n, max_length, origin = None):
         '''
         This function creates a random terrain of spheres and boxes
         Input:
             n : number of objects to be placed
             max_length : max distance from origin within which objects are to be placed
         '''
+            
         
         for i in range(n):
-            if random.uniform(0,1) > 0.9:    
+            if random.uniform(0,1) > 0.99:    
                 box_size = self.box_arr[random.randint(0, len(self.box_arr)-1)][0:3]
                 x = random.uniform(-max_length, max_length)  
                 y = random.uniform(-max_length, max_length)
+                if origin:
+                    x += origin[0]
+                    y+= origin[1]
                 self.create_box([x, y, 0.0], [random.uniform(-0.08, 0.08), random.uniform(-0.05, 0.05), random.uniform(-0.08, 0.08), 1], box_size)
             
             else:
@@ -158,9 +162,15 @@ class TerrainGenerator:
                     x = random.uniform(-max_length, max_length)  
                     y = random.uniform(-max_length, max_length)
                     z = random.uniform(-0.11, -0.08)
+                    if origin:
+                        x += origin[0]
+                        y+= origin[1]
                     self.create_sphere([x, y, z], '14cm')
                 else:
                     x = random.uniform(-max_length, max_length)  
                     y = random.uniform(-max_length, max_length)
                     z = random.uniform(-0.18, -0.15)
+                    if origin:
+                        x += origin[0]
+                        y+= origin[1]
                     self.create_sphere([x, y, z], '20cm')
