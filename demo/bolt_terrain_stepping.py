@@ -71,6 +71,7 @@ v_init = np.round([1.5*(np.random.rand() - 0.5), 1*(np.random.rand() - 0.5)],2)
 v_des = [0.5*random.randint(-0, 1), 0.5*random.randint(-1, 1)]
 x_init = 0.5*np.round([random.uniform(-max_length, max_length), random.uniform(-max_length, max_length)], 2)
 
+
 x, xd, u, n = bolt_env.reset_env([x_init[0], x_init[1], ht + off, v_init[0], v_init[1]])
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]    
 epi_cost = 0

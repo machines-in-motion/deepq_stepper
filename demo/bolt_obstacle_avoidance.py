@@ -68,7 +68,7 @@ terr_gen.load_terrain("../python/py_bullet_env/terrains/uneven.urdf")
 
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
-no_steps = 300
+no_steps = 100
 ##################################################################
 
 v_init = [0, 0]
@@ -122,8 +122,9 @@ for i in range(no_steps):
     # if done:
     #     print('terminated ..')
     #     break
-    
-bolt_env.stop_recording()
+  
+bolt_env.plot()
+# bolt_env.stop_recording()
 
 
     

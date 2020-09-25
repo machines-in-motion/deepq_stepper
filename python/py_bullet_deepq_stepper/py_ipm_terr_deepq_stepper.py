@@ -28,7 +28,7 @@ step_time = 0.1
 stance_time = 0.02
 ht = 0.28
 off = 0.0
-w = [0.5, 3.5, 1.5]
+w = [0.5, 3.0, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################

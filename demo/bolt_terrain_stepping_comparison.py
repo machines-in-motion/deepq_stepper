@@ -51,12 +51,11 @@ dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
 dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model = "../models/dqs_2")
 
-# dqs_3 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-#     no_actions= no_actions, trained_model = "../models/dqs_3")
+dqs_3 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
+    no_actions= no_actions, trained_model = "../models/dqs_1")
 
 
-dqs_arr = [dqs_1, dqs_2]
-dqs_ct = 0
+dqs_arr = [dqs_1, dqs_2, dqs_3]
 
 ##################################################################
 
@@ -72,14 +71,17 @@ terr_gen.create_random_terrain(350, max_length)
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
 no_steps = 15
-no_epi = 50
+no_epi = 10
 ##################################################################
 
-history = [[], []]
+history = []
+for k in range(len(dqs_arr)):
+    history.append([])
+    
 e = 0
 while e < no_epi:
     v_init = np.round([1.5*(np.random.rand() - 0.5), 1*(np.random.rand() - 0.5)],2)
-    v_des = [0.5*random.randint(-0, 1), 0.5*random.randint(-1, 1)]
+    v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
     x_init = 0.5*np.round([random.uniform(-max_length, max_length), random.uniform(-max_length, max_length)], 2)
     done_arr = []
 
@@ -117,11 +119,11 @@ while e < no_epi:
 
         done_arr.append(epi_cost)
     
-    if (np.array(done_arr) < 100).all(): 
-        for k in range(len(done_arr)):
-            history[k].append(done_arr[k])
+    # if (np.array(done_arr) < 100).all(): 
+    for k in range(len(done_arr)):
+        history[k].append(done_arr[k])
         
-        e += 1
+    e += 1
         
 
 print('Bullet dqs win percentage : ' + str(np.sum(np.greater(history[0], history[1]))/no_epi))
@@ -131,6 +133,8 @@ print('Bullet dqs win percentage : ' + str(np.sum(np.greater(history[0], history
 plt.plot(history[0], label = 'IPM Env')
 # plt.plot(history[0], label = 'bullet_2d_dqs')
 plt.plot(history[1], label = 'Bullet Env')
+plt.plot(history[2], label = 'Bullet Env with Heavy Legs')
+
 plt.ylabel('Episode Cost')
 plt.xlabel('Episode Number')
 plt.legend()

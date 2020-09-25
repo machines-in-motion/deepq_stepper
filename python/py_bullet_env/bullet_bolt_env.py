@@ -170,7 +170,7 @@ class BoltBulletEnv:
         self.t = 0
 
         self.u = fr_foot
-       
+        print(self.b)
         return com[0:3].T, np.around(dcom[0:3].T, 2), np.around(self.u[0:3], 2), np.power(-1, self.n + 1)
 
     def generate_traj(self, q, dq, fl_foot, fr_foot, n, u_t, t, stance_time, des_z, des_zd):
@@ -354,7 +354,10 @@ class BoltBulletEnv:
         T = len(self.act_com[:,0])
         t = 0.001*np.arange(0,T)
 
+        plt.rcParams.update({'font.size': 15})
+
         fig, ax = plt.subplots(6,1)
+
         ax[0].plot(t,self.act_com[:,0], label = 'cx')
         ax[0].grid()
         ax[0].legend()
@@ -366,7 +369,7 @@ class BoltBulletEnv:
         ax[1].set_ylabel('meters')
 
         ax[2].plot(t,self.act_com[:,2], label = 'cz')
-        ax[2].plot(t,self.des_com, label = 'des_cz')
+        # ax[2].plot(t,self.des_com, label = 'des_cz')
         ax[2].grid()
         ax[2].legend()
         ax[2].set_ylabel('meters')
@@ -375,18 +378,19 @@ class BoltBulletEnv:
         ax[3].plot(t,self.des_dcom[:,0], label = 'des_vx')
         ax[3].grid()
         ax[3].legend()
-        ax[3].set_ylabel('meters/second')
+        ax[3].set_ylabel('m/s')
 
         ax[4].plot(t,self.act_dcom[:,1], label = 'vy')
         ax[4].plot(t,self.des_dcom[:,1], label = 'des_vy')
         ax[4].grid()
         ax[4].legend()
-        ax[4].set_ylabel('meters/second')
+        ax[4].set_ylabel('m/s')
 
         ax[5].plot(t,self.act_dcom[:,2], label = 'vz')
         ax[5].grid()
         ax[5].legend()
-        ax[5].set_ylabel('meters/second')
+        ax[5].set_ylabel('m/s')
+        ax[5].set_xlabel('seconds')
     
         fig, ax1 = plt.subplots(2,1)
         ax1[0].plot(self.act_leg_length, label = 'act')
