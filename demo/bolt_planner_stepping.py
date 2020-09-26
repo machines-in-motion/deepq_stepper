@@ -41,7 +41,7 @@ dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model = "../models/bolt/lipm_walking/dqs_3")
 
 dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_2")
+    no_actions= no_actions, trained_model = "../models/bolt/bullet_walking/dqs_2")
 
 
 dqs_arr = [dqs_1, dqs_2]

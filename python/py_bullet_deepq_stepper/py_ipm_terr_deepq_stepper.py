@@ -24,15 +24,17 @@ kd_ang_com = [25, 25, 0]
 
 F = [0, 0, 0]
 
-step_time = 0.1
+step_time = 0.2 # 0.1
 stance_time = 0.02
 ht = 0.28
 off = 0.0
-w = [0.5, 3.0, 1.5]
+w = [1.5, 3.0, 0.5] #[0.5, 3.0, 1.5]
+
+max_step_length = 0.2 # 0.22
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
-env = InvertedPendulumEnv(ht, 0.13, 0.22, w, no_actions= [11, 9])
+env = InvertedPendulumEnv(ht, 0.13, max_step_length, w, no_actions= [11, 9])
 no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
@@ -47,7 +49,7 @@ e = 1
 no_epi = 15000
 no_steps = 10
 
-buffer_size = 7000
+buffer_size = 5000 #7000
 buffer = Buffer(buffer_size)
 batch_size = 16
 epsillon = 0.2
@@ -63,8 +65,8 @@ terr_gen.create_random_terrain(40, max_length)
 ##################################################################
 history = {'loss':[], 'epi_cost':[]}
 while e < no_epi:
-
-    v_init = np.round([random.uniform(-1., 1.), random.uniform(-1, 1)], 2)
+    # for step time of 0.1 : -1 to 1 everything
+    v_init = np.round([random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)], 2)
     v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
     x_init = 0.8*np.round([random.uniform(-max_length, max_length), random.uniform(-max_length, max_length)], 2)
     x, xd, u, n = bolt_env.reset_env([x_init[0], x_init[1], ht + off, v_init[0], v_init[1]])

@@ -49,13 +49,13 @@ dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model='../models/bolt/lipm_walking/dqs_3')
 
 dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_2")
+    no_actions= no_actions, trained_model = "../models/bolt/bullet_walking/dqs_2")
 
 dqs_3 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model = "../models/dqs_1")
 
 
-dqs_arr = [dqs_1, dqs_2, dqs_3]
+dqs_arr = [dqs_1, dqs_2]
 
 ##################################################################
 
@@ -71,7 +71,7 @@ terr_gen.create_random_terrain(350, max_length)
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
 no_steps = 15
-no_epi = 10
+no_epi = 50
 ##################################################################
 
 history = []
@@ -127,13 +127,13 @@ while e < no_epi:
         
 
 print('Bullet dqs win percentage : ' + str(np.sum(np.greater(history[0], history[1]))/no_epi))
-
-# plt.title("Comparison: Episode cost for stepper trained in different environments")
+print('IPM Env - Mean {} , Var {} \n Bullet Env - Mean {} , Var {} '.format(np.mean(history[0]), np.std(history[0]), np.mean(history[1]), np.std(history[1])))
+plt.title("Comparison: Episode cost for stepper trained in different environments")
 # plt.title("Comparison: Episode cost for stepper trained for 2d and 3d, but tested in 3d")
 plt.plot(history[0], label = 'IPM Env')
 # plt.plot(history[0], label = 'bullet_2d_dqs')
 plt.plot(history[1], label = 'Bullet Env')
-plt.plot(history[2], label = 'Bullet Env with Heavy Legs')
+# plt.plot(history[2], label = 'Bullet Env with Heavy Legs')
 
 plt.ylabel('Episode Cost')
 plt.xlabel('Episode Number')

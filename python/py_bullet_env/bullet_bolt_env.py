@@ -170,7 +170,7 @@ class BoltBulletEnv:
         self.t = 0
 
         self.u = fr_foot
-        print(self.b)
+        # print(self.b)
         return com[0:3].T, np.around(dcom[0:3].T, 2), np.around(self.u[0:3], 2), np.power(-1, self.n + 1)
 
     def generate_traj(self, q, dq, fl_foot, fr_foot, n, u_t, t, stance_time, des_z, des_zd):
@@ -324,13 +324,23 @@ class BoltBulletEnv:
         account the offset) + 100 if episode terminates (kinematics constraints are violated) 
         '''
 
+       
+
         if np.power(-1, self.n) < 0:
             cost = self.w[0]*(abs(fr_hip[0] - u[0]) + abs(fr_hip[1] - u[1]))
         else:
             cost = self.w[0]*(abs(fl_hip[0] - u[0]) + abs(fl_hip[1] - u[1]))
-
-        cost += self.w[1]*(abs(v_des[0] - dcom[0]) + abs(v_des[1] - dcom[1]))
-        cost += self.w[2]*(abs(u[0] - u_old[0]) + abs(abs(u[1] - u_old[1]) - self.b) + abs(u[2] - u_old[2]))
+        
+        # this is to bound the cost when the simulation blows up
+        if self.w[1]*(abs(v_des[0] - dcom[0]) + abs(v_des[1] - dcom[1])) > self.w[1] * 10:
+            cost += self.w[1] * 10
+        else:
+            cost += self.w[1]*(abs(v_des[0] - dcom[0]) + abs(v_des[1] - dcom[1]))
+        # this is to bound the cost when the simulation blows up
+        if self.w[2]*(abs(u[0] - u_old[0]) + abs(abs(u[1] - u_old[1]) - self.b) + abs(u[2] - u_old[2])) > self.w[2]:
+            cost += self.w[2]
+        else:
+            cost += self.w[2]*(abs(u[0] - u_old[0]) + abs(abs(u[1] - u_old[1]) - self.b) + abs(u[2] - u_old[2]))
 
         if done:
             cost += 100

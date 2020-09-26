@@ -228,7 +228,7 @@ class InvertedPendulumEnv:
         self.no_steps = 0
         assert len(w) == 3
         self.w = w
-        assert (np.linalg.norm([max_step_length, self.h - self.com_offset]) < self.max_leg_length)
+        # assert (np.linalg.norm([max_step_length, self.h - self.com_offset]) < self.max_leg_length)
         assert len(no_actions) == 2
         # The co ordinate axis is x : forward and y : sideways walking, z : faces upward
         # This means that left leg is on the positive side of the y axis

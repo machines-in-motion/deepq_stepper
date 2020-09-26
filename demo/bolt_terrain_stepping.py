@@ -49,7 +49,7 @@ print(no_actions)
 #     no_actions= no_actions, trained_model='../models/bolt/lipm_walking/dqs_3')
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_2")
+    no_actions= no_actions, trained_model = "../models/bolt/bullet_walking/dqs_2")
 
 
 ##################################################################
@@ -60,7 +60,7 @@ terr = TerrainHandler(bolt_env.robot.robotId)
 
 max_length = 1.0
 terr_gen.create_random_terrain(50, max_length)
-# terr_gen.load_terrain("../python/py_bullet_env/terrains/push.urdf")
+terr_gen.load_terrain("../python/py_bullet_env/terrains/push.urdf")
 
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
@@ -68,7 +68,9 @@ no_steps = 50
 ##################################################################
 
 v_init = np.round([1.5*(np.random.rand() - 0.5), 1*(np.random.rand() - 0.5)],2)
-v_des = [0.5*random.randint(-0, 1), 0.5*random.randint(-1, 1)]
+# v_des = [0.5*random.randint(-0, 1), 0.5*random.randint(-1, 1)]
+v_des = [0.5, 0.0]
+print(v_des)
 x_init = 0.5*np.round([random.uniform(-max_length, max_length), random.uniform(-max_length, max_length)], 2)
 
 

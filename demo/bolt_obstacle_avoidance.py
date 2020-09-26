@@ -49,7 +49,7 @@ print(no_actions)
 #     no_actions= no_actions, trained_model='../models/bolt/lipm_walking/dqs_3')
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_2")
+    no_actions= no_actions, trained_model = "../models/bolt/bullet_walking/dqs_2")
 
 
 ##################################################################
@@ -98,7 +98,7 @@ for i in range(no_steps):
         # print('change4')
         v_des = [-.0, 0]
     terrain = dqs.x_in[:,8:].copy()
-    
+     
     for k in range(len(dqs.x_in)):
         u_x = env.action_space_x[int(dqs.x_in[k,8])] + u[0]
         u_y = n*env.action_space_y[int(dqs.x_in[k,9])] + u[1]

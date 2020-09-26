@@ -53,7 +53,7 @@ print(no_actions)
 #     no_actions= no_actions, trained_model='../models/bolt/lipm_walking/dqs_3')
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_2")
+    no_actions= no_actions, trained_model = "../models/bolt/bullet_walking/dqs_2")
 
 
 ##################################################################
@@ -140,9 +140,9 @@ x, xd, u, n = bolt_env.reset_env([x_init[0], x_init[1], ht + off, v_init[0], v_i
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]    
 epi_cost = 0
 
-# p.resetDebugVisualizerCamera( cameraDistance=1.0, cameraYaw=130, cameraPitch=-25, cameraTargetPosition=[0.3,0,0])
+p.resetDebugVisualizerCamera( cameraDistance=0.7, cameraYaw= 55, cameraPitch=-25, cameraTargetPosition=[0.3,0,0])
 
-bolt_env.start_recording("3d_stepping_stones.mp4")
+# bolt_env.start_recording("3d_stepping_stones.mp4")
 
 for i in range(no_steps):
     print(x[0:2])
@@ -187,6 +187,13 @@ for i in range(no_steps):
     state = next_state
     u = u_new
     epi_cost += cost
+    
+    # if i == 0:
+    #     # time.sleep(100)
+    #     width, height, rgbImg, depthImg, segImg = p.getCameraImage(width = 1000, height = 800)
+    #     import matplotlib 
+    #     matplotlib.image.imsave('stepping_stones.png', rgbImg)
+    #     assert False
     
     # if done:
     #     print('terminated ..')
