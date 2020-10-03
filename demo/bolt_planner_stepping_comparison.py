@@ -18,19 +18,21 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-F = [0, 0, 0]
+import pybullet as p
 
-kp = [35, 35, 25]
-kd = [10, 10, 10]
-kp_com = [0, 0, 20]
-kd_com = [0, 0, 10]
+kp = [150, 150, 150]
+kd = [15, 15, 15]
+kp_com = [0, 0, 150.0]
+kd_com = [0, 0, 20.0]
 kp_ang_com = [100, 100, 0]
 kd_ang_com = [25, 25, 0]
 
+F = [0, 0, 0]
+
 step_time = 0.1
-stance_time = 0.03
-ht = 0.26
-w = [0.5, 3, 1.5]
+stance_time = 0.02
+ht = 0.28
+w = [0.5, 3.0, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
@@ -44,29 +46,36 @@ dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
     no_actions= no_actions, trained_model = "../models/bolt/lipm_walking/dqs_3")
 
 dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_3")
+    no_actions= no_actions, trained_model = "../models/bolt/bullet_walking/dqs_3")
 
 
 dqs_arr = [dqs_1, dqs_2]
 dqs_ct = 0
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
-no_epi = 100
-no_steps = 10
-
+no_epi = 1
+no_steps = 20
+e = 0
 ##################################################################
 history = []
 
-for dqs in dqs_arr:
-    history.append([])
-    for e in range(no_epi):
+p.resetDebugVisualizerCamera( cameraDistance=0.9, cameraYaw=90, cameraPitch=-25, cameraTargetPosition=[0.0, 0,0])
 
-        v_init = np.round([1.5*(np.random.rand() - 0.5), 1*(np.random.rand() - 0.5)],2)
-        v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
+
+while e < no_epi:
+
+    v_init = np.round([1.5*(np.random.rand() - 0.5), 1*(np.random.rand() - 0.5)],2)
+    v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
+    
+    for k in range(len(dqs_arr)):
+        # bolt_env.start_recording("bullet_ipm_comparison_side_" + str(k) + ".mp4")
+
+        history.append([])
+        dqs = dqs_arr[k]
+        epi_cost = 0
         x, xd, u, n = bolt_env.reset_env([0, 0, ht, v_init[0], v_init[1]])
         state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
-                
-        epi_cost = 0
+    
         for i in range(no_steps):
 
             action = dqs.predict_q(state, terrain)[1]
@@ -85,14 +94,17 @@ for dqs in dqs_arr:
                 break
         if not done:
             history[dqs_ct].append(epi_cost)
-    
-    dqs_ct += 1
 
+    # bolt_env.stop_recording()
+
+    dqs_ct += 1
+    e += 1
 plt.plot(history[0], label = 'ipm_dqs')
 plt.plot(history[1], label = 'bullet_dqs')
 plt.legend()
 plt.grid()
 plt.show()
+
 
 
 # bolt_env.plot()

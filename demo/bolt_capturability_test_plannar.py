@@ -53,7 +53,7 @@ no_epi = 1
 no_steps = 10
 
 step_number = 0
-opt = 0
+opt = 10
 option_number = 0
 ##################################################################
 history = []
@@ -79,6 +79,9 @@ for dqs in dqs_arr:
         terrain[:,0] = np.reshape(q_values, (len(terrain[:,0],)))
         terrain = np.round(terrain[terrain[:,0].argsort()], 2)
         
+        # print(terrain[0:12])
+        
+        # assert False
         if i == step_number:
             option_number = opt
 
@@ -109,10 +112,13 @@ for dqs in dqs_arr:
 
                     
         x, xd, u_new, n, cost, done = bolt_env.step_env([u_x, u_y, u_z], v_des, F)
+        if i == step_number:
+            print("state end step : ",  np.round([x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1]], 2))
         next_state = np.round([x[0] - u_new[0], x[1] - u_new[1], x[2] - u_new[2], xd[0], xd[1], n, v_des[0], v_des[1]], 2)
         state = next_state
         u = u_new
         epi_cost += cost
+        
         
         
         p.removeAllUserDebugItems()

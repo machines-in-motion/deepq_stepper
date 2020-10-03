@@ -79,6 +79,8 @@ x, xd, u, n = bolt_env.reset_env([x_init[0], x_init[1], ht + off, v_init[0], v_i
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]    
 epi_cost = 0
 
+# p.resetDebugVisualizerCamera( cameraDistance=1.5, cameraYaw=110, cameraPitch=-25, cameraTargetPosition=[1.0,0,0])
+
 p.resetDebugVisualizerCamera( cameraDistance=1.5, cameraYaw=110, cameraPitch=-25, cameraTargetPosition=[1.0,0,0])
 
 # bolt_env.start_recording("3d_obstacle_avoidance.mp4")

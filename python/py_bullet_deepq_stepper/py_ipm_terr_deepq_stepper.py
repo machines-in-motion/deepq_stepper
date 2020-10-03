@@ -28,16 +28,17 @@ step_time = 0.2 # 0.1
 stance_time = 0.02
 ht = 0.28
 off = 0.0
-w = [1.5, 3.0, 0.5] #[0.5, 3.0, 1.5]
+w = [0.5, 3.0, 1.5] #[0.5, 3.0, 1.5]
 
-max_step_length = 0.2 # 0.22
+max_step_length = 0.22 #0.22
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
 env = InvertedPendulumEnv(ht, 0.13, max_step_length, w, no_actions= [11, 9])
 no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
-
+print(env.action_space_x)
+print(env.action_space_y)
 ###################################################################
 
 name = 'dqs_1'
@@ -49,7 +50,7 @@ e = 1
 no_epi = 15000
 no_steps = 10
 
-buffer_size = 5000 #7000
+buffer_size = 6000 #7000
 buffer = Buffer(buffer_size)
 batch_size = 16
 epsillon = 0.2
@@ -60,7 +61,7 @@ terr_gen = TerrainGenerator('/home/ameduri/py_devel/workspace/src/catkin/deepq_s
 max_length = 1.0
 
 terr = TerrainHandler(bolt_env.robot.robotId)
-terr_gen.create_random_terrain(40, max_length)
+terr_gen.create_random_terrain(10, max_length) #40
 
 ##################################################################
 history = {'loss':[], 'epi_cost':[]}

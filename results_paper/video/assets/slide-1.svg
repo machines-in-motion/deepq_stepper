@@ -1,0 +1,31 @@
+<?xml version="1.0" ?><!-- Created with Inkscape (http://www.inkscape.org/) --><svg height="1080" id="svg2383" version="1.0" width="1920" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs id="defs2385">
+    <linearGradient id="linearGradient5286">
+      <stop id="stop5288" offset="0" style="stop-color:#000000;stop-opacity:1"/>
+      <stop id="stop5290" offset="1" style="stop-color:#000000;stop-opacity:0.60784316"/>
+    </linearGradient>
+    <linearGradient id="linearGradient3267">
+      <stop id="stop3269" offset="0" style="stop-color:#0000ff;stop-opacity:0"/>
+      <stop id="stop3275" offset="0.48768985" style="stop-color:#ffffff;stop-opacity:1"/>
+      <stop id="stop3271" offset="1" style="stop-color:#0000ff;stop-opacity:0"/>
+    </linearGradient>
+    <linearGradient gradientTransform="matrix(0.4475832,0,0,1.1594093,-317.72844,-354.23847)" gradientUnits="userSpaceOnUse" id="linearGradient3273" x1="333.26617" x2="1668.8561" xlink:href="#linearGradient3267" y1="671.26709" y2="671.26709"/>
+    <linearGradient gradientTransform="matrix(0.4475832,0,0,1.1594093,-317.72845,-255.93349)" gradientUnits="userSpaceOnUse" id="linearGradient3463" x1="333.26617" x2="1668.8561" xlink:href="#linearGradient3267" y1="671.26709" y2="671.26709"/>
+    <radialGradient cx="720" cy="367.08258" fx="720" fy="367.08258" gradientTransform="matrix(1,0,0,0.1630711,0,307.22203)" gradientUnits="userSpaceOnUse" id="radialGradient5292" r="322.95203" xlink:href="#linearGradient5286"/>
+  </defs>
+  <metadata id="metadata2388">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title/>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g id="layer1" transform="translate(0.0019328,0)">
+    <rect height="1080.0051" id="rect3160" rx="0" ry="0" style="opacity:0;fill:#e0e7ff;fill-opacity:1;stroke:none" width="1920" x="-0.0019328" y="-0.0051269531"/>
+    <rect height="214.96046" id="rect3174-5" rx="44.07275" ry="42.426407" style="fill:#363636;fill-opacity:0.52511417;fill-rule:evenodd;stroke:none" width="1325.1206" x="633.4848" y="808.47101"/>
+    <text id="text2395-5" style="font-size:185.20953369px;font-style:Regular;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke:#393939;stroke-width:3.75001788;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;font-family:Ubuntu;-inkscape-font-specification:Bitstream Vera Sans" x="1320.8649" xml:space="preserve" y="961.20325"><tspan id="tspan2397-91" style="font-size:131.25064087px;font-style:Regular;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke:#393939;stroke-width:3.75001788;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:Ubuntu;-inkscape-font-specification:Sans" x="1320.8649" y="961.20325">inverted pendulum 
+DeepQ stepper</tspan></text>
+  </g>
+</svg>
