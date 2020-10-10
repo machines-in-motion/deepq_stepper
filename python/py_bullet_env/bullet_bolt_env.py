@@ -252,7 +252,7 @@ class BoltBulletEnv:
         
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
-            time.sleep(0.001)
+            # time.sleep(0.001)
             self.apply_force(force)
             q, dq = self.robot.get_state()
 
