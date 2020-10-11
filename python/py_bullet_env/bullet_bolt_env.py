@@ -162,7 +162,8 @@ class BoltBulletEnv:
         fl_foot, fr_foot = self.get_foot_state(q, dq)
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
         com, dcom = self.get_com_state(q, dq)
-        assert dcom[0] == state[3]
+        print(dcom[0], state[3])
+        # assert dcom[0] == state[3]
         
         
         self.b = np.round(fl_hip[1] - fr_hip[1], 2)
@@ -252,7 +253,7 @@ class BoltBulletEnv:
         
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
-            # time.sleep(0.001)
+            # time.sleep(0.0006)
             self.apply_force(force)
             q, dq = self.robot.get_state()
 

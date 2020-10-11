@@ -100,5 +100,3 @@ while e < no_epi:
             break
 
 torch.save(dqs.dq_stepper.state_dict(), "../../models/" + name)
-
-# bolt_env.plot()

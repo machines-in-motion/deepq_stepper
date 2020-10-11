@@ -4,6 +4,7 @@
 
 import random
 import numpy as np
+
 from py_bullet_deepq_stepper.dq_stepper import DQStepper, InvertedPendulumEnv, Buffer
 from py_bullet_env.bullet_bolt_env import BoltBulletEnv
 
@@ -49,14 +50,15 @@ dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
 no_epi = 2
-no_steps = 40
+no_steps = 20
+
 
 ##################################################################
 
 
-v_init = np.round([0.3*random.uniform(-1.0, 1.0), 0.3*random.uniform(-1.0, 1.0)], 2)
+# v_init = np.round([0.5*random.uniform(-1.0, 1.0), 0.5*random.uniform(-1.0, 1.0)], 2)
 # v_des = [0.5*random.randint(-0, 1), 0.5*random.randint(-1, 1)]
-# v_init = [0, 0]
+v_init = [0.0, 0]
 print(v_init)
 v_des = [0.0, 0.0]
 x, xd, u, n = bolt_env.reset_env([0, 0, ht, v_init[0], v_init[1]])
@@ -67,7 +69,10 @@ state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des
 epi_cost = 0
 for i in range(no_steps):
     action = dqs.predict_q(state, terrain)[1]
-    print(state, action)
+    
+    # if i < 5 and i > 2:
+    #     print(state[3:5], action)
+    #     F = [1.0, 0, 0]
     
     # for x axis
     # state_x = state.copy()

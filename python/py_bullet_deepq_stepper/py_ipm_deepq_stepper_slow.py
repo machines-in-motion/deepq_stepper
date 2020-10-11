@@ -34,7 +34,7 @@ w = [0.5, 3, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
-env = InvertedPendulumEnv(ht, 0.13, 0.22, w, no_actions= [11, 9])
+env = InvertedPendulumEnv(ht, 0.13, 0.2, w, no_actions= [11, 9])
 no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
@@ -52,23 +52,23 @@ e = 1
 no_epi = 40000
 no_steps = 10
 
-buffer_size = 4000 #6000
+buffer_size = 6000 #6000
 buffer = Buffer(buffer_size)
 batch_size = 16
-epsillon = 0.1 #0.8
+epsillon = 0.2 #0.8
 ratio = 0.8
 
 ##################################################################
 history = {'loss':[], 'epi_cost':[]}
 while e < no_epi:
 
-    v_init = np.round([0.3*random.uniform(-1.0, 1.0), 0.3*random.uniform(-1.0, 1.0)], 2)
-    v_des = [0.3*random.randint(-1, 1), 0.3*random.randint(-1, 1)]
+    v_init = np.round([0.5*random.uniform(-1.0, 1.0), 0.5*random.uniform(-1.0, 1.0)], 2)
+    v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
     x, xd, u, n = bolt_env.reset_env([0, 0, ht + off, v_init[0], v_init[1]])
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
-    
+
     if e == 2:
-        epsillon = 0.1 #0.5
+        epsillon = 0.2 #0.5
         print("updated epsillon ...")
 
     if e % 500 == 0 and e > 1:
@@ -98,7 +98,7 @@ while e < no_epi:
         u_x = env.action_space_x[int(action[0])] + u[0]
         u_y = n*env.action_space_y[int(action[1])] + u[1]
         u_z = action[2] + u[2]
-        
+
         x, xd, u_new, n, cost, done = bolt_env.step_env([u_x, u_y, u_z], v_des, F)
         next_state = np.round([x[0] - u_new[0], x[1] - u_new[1], x[2] - u_new[2], xd[0], xd[1], n, v_des[0], v_des[1]], 2)
         buffer.store(state, action, cost, next_state, done)

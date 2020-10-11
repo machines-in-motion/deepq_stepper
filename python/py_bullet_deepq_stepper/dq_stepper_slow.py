@@ -153,10 +153,7 @@ class DQStepper:
         if np.random.random() > eps:
             return self.predict_action_value(x)[0]
         else:
-#             action_x = np.random.randint(self.no_actions[0])
-#             action_y = np.random.randint(self.no_actions[1])
             action_z = 0
-            
             if self.use_wm_model_xy:
                 self.xy_in[:,[0, 1, 2, 3, 4, 5, 6, 7]] = x
                 torch_xy_in = torch.FloatTensor(self.xy_in, device = self.device)
