@@ -39,7 +39,7 @@ print(env.action_space_y)
 ###################################################################
 
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_1")
+    no_actions= no_actions, trained_model = "../models/dqs_11_9")
 
 # dqs_x = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
 #     no_actions= [11,1], trained_model = "../models/dqs_x11")

@@ -29,41 +29,42 @@ F = [0, 0, 0]
 step_time = 0.2
 stance_time = 0.00
 ht = 0.35
-off = 0.0
+off = 0.01
 w = [0.5, 3.5, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
-env = InvertedPendulumEnv(ht, 0.13, [0.2, 0.2], w, no_actions= [11, 9])
+env = InvertedPendulumEnv(ht, 0.13, [0.4, 0.3], w, no_actions= [11, 9])
 no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
 ###################################################################
 
 dqs_1 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_1")
+    no_actions= no_actions, trained_model = "../models/dqs_11_9")
 
 dqs_2 = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, \
-    no_actions= no_actions, trained_model = "../models/dqs_1_vel")
+    no_actions= no_actions, trained_model = "../models/dqs_1_light")
 
 
-dqs_arr = [dqs_1, dqs_2]
+dqs_arr = [dqs_2, dqs_1]
 dqs_ct = 0
 ###################################################################
 terrain = np.zeros(no_actions[0]*no_actions[1])
 no_epi = 1
-no_steps = 10
+no_steps = 20
 
 step_number = 0
-opt = 6
+opt = 10
 option_number = 0
 ##################################################################
 history = []
 
-for dqs in dqs_arr:
+for i in range(len(dqs_arr)):
 
-    v_init = [0.0, 0.0]
-    v_des = [0, 0]
+    dqs = dqs_arr[i]
+    v_init = [0.3, 0.0]
+    v_des = [0.0, 0]
     x, xd, u, n = bolt_env.reset_env([0, 0, ht, v_init[0], v_init[1]])
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
     print(state)        
