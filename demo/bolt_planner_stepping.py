@@ -26,7 +26,7 @@ F = [0, 0, 0]
 
 step_time = 0.1
 stance_time = 0.03
-ht = 0.26
+ht = 0.35
 w = [0.0, 1, 0.0]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
@@ -65,7 +65,7 @@ for dqs in dqs_arr:
                 
         epi_cost = 0
         for i in range(no_steps):
-
+            print(state)
             action = dqs.predict_q(state, terrain)[1]
             u_x = env.action_space_x[int(action[0])] + u[0]
             u_y = n*env.action_space_y[int(action[1])] + u[1]

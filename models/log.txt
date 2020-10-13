@@ -1,16 +1,6 @@
-# This folder contains steppers for 0.2 seconds step time
-
-# Trained in ipm
-
-1) dqs_x11 : stepper trained for 1d case in the x direction with 11 actions and 0.2 max step length
-2) dqs_x5 : same as above for 5 actions
-3) dqs_y9 : trained with stepper in 1d case in y direcion (contains hip offset of 0.13 like bolt). 9 actions, max step length 0.2
-
-4) dqs_11_9 : trained with warm started dqs_x11 and dqs_y9. epsilon 0.8 starting. Then reduced epsilon to 0.2 and 
-                did epsillon greedy to make sure it sees enough bad states. 
-
-# Trained in Bullet directly
-
-5) dqs_1_wm : trained like dqs_11_9 but with epsillon 0.8 for buffer. then epsillon reduced to 0.5. After 5000 iterations
-                reduce by half every 1000 episodes. (Used dqs_x11, dqs_y9)
-6) dqs_1_vel : used dqs_1_wm weights and with epsilon greedy (0.1) to train for tracking velocities. 
+1) dqs_x11 : trained in ipm x axis 11 actions 0.4 (not sure)
+2) dqs_y9 : "" "" for y axis 9 actions
+3) dqs_11_9 : trained in ipm xy
+4) dqs_1_vel : trained in bullet 0.5, 3, 1.5.
+5) dqs_2_vel : trained in bullet 0.5, 3, 1.5.
+6) dqs_3_vel : trained in bullet 0.5, 4, 1.5.

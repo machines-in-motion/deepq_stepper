@@ -215,7 +215,7 @@ class InvertedPendulumEnv:
             no_actions : number of discretizations
         '''
         self.g = 9.81
-        self.max_leg_length = 0.32
+        self.max_leg_length = 0.4
         # maximum accelertion in the z direction by applying force on the ground
         self.max_acc = 7.0
         self.dt = 0.001
@@ -224,30 +224,31 @@ class InvertedPendulumEnv:
         self.h = h
         self.b = b
         # com_offset : the distance betweem center of mass and hip   
-        self.com_offset = 0.078
+        self.com_offset = 0.04
         self.no_steps = 0
         assert len(w) == 3
         self.w = w
-        # assert (np.linalg.norm([max_step_length, self.h - self.com_offset]) < self.max_leg_length)
+        assert (np.linalg.norm([max_step_length[0]/2, self.h - self.com_offset]) < self.max_leg_length)
+        assert (np.linalg.norm([max_step_length[1]/2, self.h - self.com_offset]) < self.max_leg_length)
         assert len(no_actions) == 2
         # The co ordinate axis is x : forward and y : sideways walking, z : faces upward
         # This means that left leg is on the positive side of the y axis
         # The addition b is added to accomodate a step length larger than leg length as it may be feasible
         # in high velocity cases.
-        self.action_space_x = np.around(np.linspace(-1.2*max_step_length, 1.2*max_step_length, no_actions[0]), 2)
+        self.action_space_x = np.around(np.linspace(-max_step_length[0], max_step_length[0], no_actions[0]), 2)
         # actions to the free side
         if b > 0 :
-            self.action_space_ly = np.geomspace(b, 1.5*max_step_length + b, int(2*no_actions[1]/3))
+            self.action_space_ly = np.geomspace(b, max_step_length[1] + b, int(2*no_actions[1]/3))
             # actions to the non free side where leg can hit the other leg
             # Y axis actions step length allowed such that robot can't step to the left of the left leg
             # or the right to the right leg (no criss crossing)
             self.action_space_ry = np.linspace(0, b, int(no_actions[1]/3), endpoint = False)
             self.action_space_y = np.around(np.concatenate((self.action_space_ry, self.action_space_ly)), 2)
         else:
-            self.action_space_y = np.around(np.linspace(0, max_step_length, int(no_actions[1]/2)), 2)
+            self.action_space_y = np.around(np.linspace(0, max_step_length[1], int(no_actions[1])), 2)
         
         self.t = 0
-        self.max_step_height = 0.05
+        self.max_step_height = 0.00
         # QP parameters
         self.delta_t = 0.01
         self.ipmotionplanner = IPMotionPlanner(self.delta_t, self.max_acc)

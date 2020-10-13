@@ -18,25 +18,25 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-kp = [150, 150, 150]
-kd = [15, 15, 15]
-kp_com = [0, 0, 150.0]
-kd_com = [0, 0, 20.0]
-kp_ang_com = [100, 100, 0]
-kd_ang_com = [25, 25, 0]
+kp = [30, 30, 30]#[150, 150, 150]
+kd = [3, 3, 3] #[15, 15, 15]
+kp_com = [0, 0, 30] #[0, 0, 150.0]
+kd_com = [0, 0, 10] #[0, 0, 20.0]
+kp_ang_com = [40, 40, 0]#[100, 100, 0]
+kd_ang_com = [5, 5, 0]#[25, 25, 0]
 
 F = [0, 0, 0]
 
 step_time = 0.2
 stance_time = 0.0
-ht = 0.28
+ht = 0.35
 off = 0.02
 
 w = [0.5, 3, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
-##################################################################
-env = InvertedPendulumEnv(ht, 0.13, 0.2, w, no_actions= [11, 9])
+env = InvertedPendulumEnv(ht, 0.13, [0.4,0.3], w, no_actions= [11, 9])
+###################################################################
 no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
@@ -52,8 +52,8 @@ terr_gen = TerrainGenerator('/home/ameduri/py_devel/workspace/src/catkin/deepq_s
 
 terr = TerrainHandler(bolt_env.robot.robotId)
 
-max_length = 0.4
-terr_gen.create_random_terrain(30, max_length)
+max_length = 0.5
+terr_gen.create_random_terrain(20, max_length)
 # terr_gen.load_terrain("../python/py_bullet_env/terrains/push.urdf")
 
 
@@ -71,16 +71,16 @@ no_steps = 40
 # v_des = [0.5*random.randint(-0, 1), 0.5*random.randint(-1, 1)]
 v_init = [0, 0]
 print(v_init)
-v_des = [0.3, 0.0]
-x_init = [-0.45,0]
+v_des = [0.5, 0.0]
+x_init = [0.5, -0.0]
 x, xd, u, n = bolt_env.reset_env([x_init[0], x_init[1], ht + off, v_init[0], v_init[1]])
 state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
 
-# bolt_env.start_recording("slow_stepping_terrain.mp4")
+bolt_env.start_recording("slow_stepping_terrain_backward_vel.mp4")
 
 epi_cost = 0
 for i in range(no_steps):
-    print(state[3:5])
+    # print(state[3:5])
     terrain = dqs.x_in[:,8:].copy()
     for i in range(len(dqs.x_in)):
         u_x = env.action_space_x[int(dqs.x_in[i,8])] + u[0]
@@ -98,7 +98,7 @@ for i in range(no_steps):
     u_x = env.action_space_x[int(action[0])] + u[0]
     u_y = n*env.action_space_y[int(action[1])] + u[1]
     u_z = action[2] + u[2]
-
+    # print(u_z)
     x, xd, u_new, n, cost, done = bolt_env.step_env([u_x, u_y, u_z], v_des, F)
     next_state = np.round([x[0] - u_new[0], x[1] - u_new[1], x[2] - u_new[2], xd[0], xd[1], n, v_des[0], v_des[1]], 2)
     state = next_state
@@ -106,10 +106,10 @@ for i in range(no_steps):
     epi_cost += cost
 
 
-    if done:
-        print("terminated.................")
+    # if done:
+        # print("terminated.................")
         # break
     # if not done:
 
-# bolt_env.stop_recording()
+bolt_env.stop_recording()
 # bolt_env.plot()

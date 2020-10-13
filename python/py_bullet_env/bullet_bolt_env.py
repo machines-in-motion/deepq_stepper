@@ -54,6 +54,7 @@ class BoltBulletEnv:
         # Robot parameters to account for to match IPM training env
         # size of the foot diameter
         self.foot_size = 0.02
+        self.max_leg_length = 0.4
         # This is the distance of the hip from the true COM
         # This is subtracted as in the training the COM is assumed to be
         # at the hip joint with no offset 
@@ -74,7 +75,7 @@ class BoltBulletEnv:
 
         # Trajectory Generator initialisation
         self.trj = TrajGenerator(self.robot.pin_robot)
-        self.f_lift = 0.07 ## height the foot lifts of the ground
+        self.f_lift = 0.1 ## height the foot lifts of the ground
         
         # State estimation initialisation
         self.sse = BoltStateEstimator(self.robot.pin_robot)
@@ -162,16 +163,15 @@ class BoltBulletEnv:
         fl_foot, fr_foot = self.get_foot_state(q, dq)
         fl_hip, fr_hip = self.sse.return_hip_locations(q, dq)
         com, dcom = self.get_com_state(q, dq)
-        print(dcom[0], state[3])
-        # assert dcom[0] == state[3]
+        assert dcom[0] == state[3]
         
         
         self.b = np.round(fl_hip[1] - fr_hip[1], 2)
+
         self.n = 1 #right leg on the ground
         self.t = 0
 
         self.u = fr_foot
-        # print(self.b)
         return com[0:3].T, np.around(dcom[0:3].T, 2), np.around(self.u[0:3], 2), np.power(-1, self.n + 1)
 
     def generate_traj(self, q, dq, fl_foot, fr_foot, n, u_t, t, stance_time, des_z, des_zd):
@@ -253,7 +253,7 @@ class BoltBulletEnv:
         
         for t in range(int(self.step_time/self.dt)):
             p.stepSimulation()
-            # time.sleep(0.0006)
+            # time.sleep(0.001)
             self.apply_force(force)
             q, dq = self.robot.get_state()
 
@@ -309,7 +309,7 @@ class BoltBulletEnv:
         elif ori[0] > 30 or ori[1] > 30 or ori[2] > 20:
             # print('ori')
             return True
-        elif np.linalg.norm(fl_foot - fl_hip) > 0.31 or np.linalg.norm(fr_foot - fr_hip) > 0.31:
+        elif np.linalg.norm(fl_foot - fl_hip) > self.max_leg_length or np.linalg.norm(fr_foot - fr_hip) > self.max_leg_length:
             # print('leg', np.linalg.norm(fl_foot - fl_hip), np.linalg.norm(fr_foot - fr_hip))
             return True
         elif np.linalg.norm(fl_foot - fr_foot) < 0.02:

@@ -4,6 +4,7 @@
     <contact>
       <lateral_friction value="0.5"/>
       <restitution value="0.0"/>
+      <spinningFriction value="0.5"/>
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0 -0.00"/>

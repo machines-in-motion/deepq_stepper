@@ -17,24 +17,24 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-kp = [150, 150, 150]
-kd = [15, 15, 15]
-kp_com = [0, 0, 150.0]
-kd_com = [0, 0, 20.0]
-kp_ang_com = [100, 100, 0]
-kd_ang_com = [25, 25, 0]
+kp = [30, 30, 30]#[150, 150, 150]
+kd = [5, 5, 5] #[15, 15, 15]
+kp_com = [0, 0, 30] #[0, 0, 150.0]
+kd_com = [0, 0, 10] #[0, 0, 20.0]
+kp_ang_com = [40, 40, 0]#[100, 100, 0]
+kd_ang_com = [5, 5, 0]#[25, 25, 0]
 
 F = [0, 0, 0]
 
 step_time = 0.2
 stance_time = 0.00
-ht = 0.28
+ht = 0.35
 off = 0.0
-w = [0.5, 3, 1.5]
+w = [0.5, 4, 1.5]
 
 bolt_env = BoltBulletEnv(ht, step_time, stance_time, kp, kd, kp_com, kd_com, kp_ang_com, kd_ang_com, w)
 ##################################################################
-env = InvertedPendulumEnv(ht, 0.13, 0.2, w, no_actions= [11, 9])
+env = InvertedPendulumEnv(ht, 0.13, [0.4, 0.3], w, no_actions= [11, 9])
 no_actions = [len(env.action_space_x), len(env.action_space_y)]
 print(no_actions)
 
@@ -42,7 +42,7 @@ print(no_actions)
 
 name = 'dqs_1'
 dqs = DQStepper(lr=1e-4, gamma=0.98, use_tarnet= True, no_actions= no_actions, env = env, \
-                wm_model_x="../../models/dqs_x11", wm_model_y="../../models/dqs_y9", trained_model = "../../models/dqs_1_old")
+                wm_model_x="../../models/dqs_x11", wm_model_y="../../models/dqs_y9", trained_model = "../../models/dqs_11_9")
 
 
 ###################################################################
@@ -62,7 +62,7 @@ ratio = 0.8
 history = {'loss':[], 'epi_cost':[]}
 while e < no_epi:
 
-    v_init = np.round([0.5*random.uniform(-1.0, 1.0), 0.5*random.uniform(-1.0, 1.0)], 2)
+    v_init = np.round([0.8*random.uniform(-1.0, 1.0), 0.5*random.uniform(-1.0, 1.0)], 2)
     v_des = [0.5*random.randint(-1, 1), 0.5*random.randint(-1, 1)]
     x, xd, u, n = bolt_env.reset_env([0, 0, ht + off, v_init[0], v_init[1]])
     state = [x[0] - u[0], x[1] - u[1], x[2] - u[2], xd[0], xd[1], n, v_des[0], v_des[1]]
