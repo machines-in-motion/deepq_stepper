@@ -16,6 +16,17 @@ with obstacles, walk on restricted surfaces like stepping stones
 while tracking different velocities, and recover from external
 disturbances for a constant low computational cost.
 
+## Dependencies :
+1. pytorch
+2. pybullet
+3. robot_properties_bolt - https://github.com/open-dynamic-robot-initiative/robot_properties_bolt
+
+## Using the code : 
+
+1. The demo folder contains various examples/results that demonstrate the capability of the DeepQ stepper. All the results are shown on the biped robot Bolt, which has 12 Degrees of Freedom. 
+2. The code used to train the DeepQ stepper, the implementation of the pybullet environment of Bolt used to deploy and train the DeepQ stepper are available in the python directory. Also, the 2D and 3D LiPM model implementations are also in this directory. 
+3. The motion planner that generated the Center of Mass trajectory given the foot step plan is also in the python/py_motion_planner directory. These trajectories are tracked using the impedance controller. 
+
 
 ## Citation 
 ```
